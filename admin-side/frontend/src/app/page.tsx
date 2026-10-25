@@ -2,26 +2,28 @@
 
 import React, { useState } from "react";
 import { TopHeader } from "@/components/admin/TopHeader";
-import { SubHeader } from "@/components/admin/SubHeader";
 import { Sidebar } from "@/components/admin/Sidebar";
+import { SimpleDashboard } from "@/components/admin/SimpleDashboard";
+import { SimpleProjects } from "@/components/admin/SimpleProjects";
+import { SimpleMachinery } from "@/components/admin/SimpleMachinery";
+import { SimplePages } from "@/components/admin/SimplePages";
 import { PagetreeOverview } from "@/components/admin/PagetreeOverview";
-import { OwnerStatsCards } from "@/components/admin/OwnerStatsCards";
 import { LayoutsGallery } from "@/components/admin/LayoutsGallery";
 import { CompanySettings } from "@/components/admin/CompanySettings";
 import { QuotesList } from "@/components/admin/QuotesList";
 import { LayoutPreviewModal } from "@/components/admin/LayoutPreviewModal";
 import { NewPageModal } from "@/components/admin/NewPageModal";
 import { PageEditModal } from "@/components/admin/PageEditModal";
-import { INITIAL_PAGES, AVAILABLE_LAYOUTS } from "@/data/initialData";
+import { INITIAL_PAGES } from "@/data/initialData";
 import { PageNode, LayoutType } from "@/types/pagetree";
-import { CheckCircle2, HardHat, Truck } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
+import { CheckCircle2 } from "lucide-react";
 import { useLanguage } from "@/context/LanguageContext";
 
 export default function AdminPage() {
   const { t, language } = useLanguage();
   const [pages, setPages] = useState<PageNode[]>(INITIAL_PAGES);
-  const [activeSection, setActiveSection] = useState<string>("pagetree");
+  // Default to clean, intuitive dashboard
+  const [activeSection, setActiveSection] = useState<string>("dashboard");
   const [selectedPreviewLayout, setSelectedPreviewLayout] = useState<LayoutType | null>(null);
   const [editingPage, setEditingPage] = useState<PageNode | null>(null);
   const [isNewPageOpen, setIsNewPageOpen] = useState(false);
@@ -32,14 +34,13 @@ export default function AdminPage() {
     setTimeout(() => setToastMessage(null), 3500);
   };
 
-  // Update layout when changed from the select dropdowns in the table
+  // Update layout when changed from the select dropdowns
   const handleUpdatePageLayout = (
     pageId: string,
     field: "layoutThisPage" | "layoutSubpages",
     value: LayoutType | "None (Inherit)"
   ) => {
     setPages((prevPages) => {
-      // Find the parent to determine inheritance if needed
       const targetPageIndex = prevPages.findIndex((p) => p.id === pageId);
       if (targetPageIndex === -1) return prevPages;
 
@@ -51,7 +52,6 @@ export default function AdminPage() {
         if (value !== "None (Inherit)") {
           currentPage.actualLayout = value;
         } else {
-          // inherit from parent's layoutSubpages or default
           const parent = prevPages.find((p) => p.id === currentPage.parentId);
           currentPage.actualLayout =
             parent && parent.layoutSubpages !== "None (Inherit)"
@@ -60,7 +60,6 @@ export default function AdminPage() {
         }
       } else {
         currentPage.layoutSubpages = value;
-        // Optionally update children who inherit
         if (value !== "None (Inherit)") {
           for (let i = 0; i < updated.length; i++) {
             if (
@@ -80,7 +79,7 @@ export default function AdminPage() {
       return updated;
     });
 
-    showToast(`Mise à jour du layout effectuée avec succès pour cette page.`);
+    showToast(`Modèle de page mis à jour avec succès.`);
   };
 
   const handleAddPage = (newPageData: Partial<PageNode>) => {
@@ -88,21 +87,21 @@ export default function AdminPage() {
       id: `page-${Date.now()}`,
       title: newPageData.title || "Nouvelle Page",
       slug: newPageData.slug || "nouvelle-page",
-      depth: newPageData.depth || 1,
-      iconType: newPageData.iconType || "page",
+      depth: 1,
+      iconType: "page",
       actualLayout: newPageData.actualLayout || "Default",
       layoutThisPage: newPageData.layoutThisPage || "Default",
-      layoutSubpages: newPageData.layoutSubpages || "None (Inherit)",
+      layoutSubpages: "None (Inherit)",
       status: "published",
       hasChildren: false,
       expanded: false,
       author: "Hamid Slassi",
       lastModified: "À l'instant",
-      parentId: newPageData.parentId || "page-1",
+      parentId: "page-1",
     };
 
     setPages((prev) => [...prev, newPage]);
-    showToast(`Page "${newPage.title}" ajoutée à l'arborescence.`);
+    showToast(`Page "${newPage.title}" ajoutée avec succès.`);
   };
 
   const handleSavePage = (updatedPage: PageNode) => {
@@ -113,24 +112,11 @@ export default function AdminPage() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-[#0b0f19] text-slate-100">
-      {/* Top Header bar matching screenshot */}
-      <TopHeader onSearchClick={() => setActiveSection("pagetree")} />
-
-      {/* Breadcrumbs Sub-header matching screenshot */}
-      <SubHeader
-        currentPath={
-          activeSection === "pagetree"
-            ? (language === "ar" ? "الصفحة الرئيسية (Congratulations)" : "Congratulations")
-            : activeSection === "layouts"
-            ? t("nav_layouts")
-            : activeSection === "quotes"
-            ? t("nav_quotes")
-            : t("nav_settings")
-        }
-        onNewPageClick={() => setIsNewPageOpen(true)}
-        onRefresh={() => showToast(language === "ar" ? "تم تحديث شجرة الموقع." : language === "en" ? "Tree data refreshed successfully." : "Données de l'arborescence rechargées.")}
-        onViewLayoutsClick={() => setActiveSection("layouts")}
+    <div className="min-h-screen flex flex-col bg-[#080d1a] text-slate-100">
+      {/* Top Header bar */}
+      <TopHeader
+        onSearchClick={() => setActiveSection("dashboard")}
+        onNavigateHome={() => setActiveSection("dashboard")}
       />
 
       {/* Main Workspace: Sidebar + Content */}
@@ -142,25 +128,64 @@ export default function AdminPage() {
         />
 
         {/* Main Content Area */}
-        <main className="flex-1 overflow-y-auto p-4 md:p-6 bg-[#0b0f19]">
-          <div className="max-w-7xl mx-auto space-y-5">
-            {/* Owner KPIs overview */}
-            <OwnerStatsCards
-              totalPages={pages.length}
-              activeLayoutsCount={AVAILABLE_LAYOUTS.length}
-            />
-
-            {/* Dynamic View based on Active Section */}
-            {activeSection === "pagetree" && (
-              <PagetreeOverview
-                pages={pages}
-                onUpdatePageLayout={handleUpdatePageLayout}
-                onPreviewLayout={(layout) => setSelectedPreviewLayout(layout)}
-                onEditPage={(page) => setEditingPage(page)}
-                onPreviewPage={(page) => setSelectedPreviewLayout(page.actualLayout)}
+        <main className="flex-1 overflow-y-auto p-4 md:p-6 lg:p-8 bg-[#080d1a]">
+          <div className="max-w-7xl mx-auto space-y-6">
+            {/* 1. Simplified Dashboard (Default View) */}
+            {activeSection === "dashboard" && (
+              <SimpleDashboard
+                onNavigate={(sec) => setActiveSection(sec)}
+                onNewProjectClick={() => setActiveSection("projects")}
+                onNewMachineClick={() => setActiveSection("machinery")}
               />
             )}
 
+            {/* 2. Simplified Projects & Construction Sites */}
+            {activeSection === "projects" && <SimpleProjects />}
+
+            {/* 3. Simplified Heavy Machinery Fleet */}
+            {activeSection === "machinery" && <SimpleMachinery />}
+
+            {/* 4. Simplified Website Pages */}
+            {activeSection === "pages" && (
+              <SimplePages
+                pages={pages}
+                onUpdatePageLayout={handleUpdatePageLayout}
+                onPreviewLayout={(layout) => setSelectedPreviewLayout(layout)}
+                onSwitchToExpertMode={() => setActiveSection("pagetree")}
+              />
+            )}
+
+            {/* 5. Inquiries & Quotes List */}
+            {activeSection === "quotes" && <QuotesList />}
+
+            {/* 6. Company Legal & Contact Settings */}
+            {activeSection === "settings" && <CompanySettings />}
+
+            {/* 7. Advanced Technical Pagetree Overview (TYPO3 CMS Style) */}
+            {activeSection === "pagetree" && (
+              <div className="space-y-4">
+                <div className="flex items-center justify-between pb-2 border-b border-slate-800">
+                  <span className="text-xs text-slate-400">
+                    Mode Expert : Arborescence technique avancée et règles d'héritage de modèles.
+                  </span>
+                  <button
+                    onClick={() => setActiveSection("pages")}
+                    className="text-xs text-amber-400 hover:underline cursor-pointer"
+                  >
+                    ← Revenir au Mode Simple (Recommandé)
+                  </button>
+                </div>
+                <PagetreeOverview
+                  pages={pages}
+                  onUpdatePageLayout={handleUpdatePageLayout}
+                  onPreviewLayout={(layout) => setSelectedPreviewLayout(layout)}
+                  onEditPage={(page) => setEditingPage(page)}
+                  onPreviewPage={(page) => setSelectedPreviewLayout(page.actualLayout)}
+                />
+              </div>
+            )}
+
+            {/* 8. Advanced Layouts Gallery */}
             {activeSection === "layouts" && (
               <LayoutsGallery
                 onSelectPreview={(layout) => setSelectedPreviewLayout(layout)}
@@ -170,81 +195,14 @@ export default function AdminPage() {
                 }}
               />
             )}
-
-            {activeSection === "quotes" && <QuotesList />}
-
-            {activeSection === "settings" && <CompanySettings />}
-
-            {activeSection === "projects" && (
-              <div className="p-6 rounded-lg border border-slate-800 bg-slate-900/60 space-y-4">
-                <div className="flex items-center space-x-2 text-white">
-                  <HardHat className="h-5 w-5 text-amber-500" />
-                  <h2 className="text-lg font-bold">Chantiers & Projets BTP Slassi</h2>
-                </div>
-                <p className="text-xs text-slate-400">
-                  Visualisez et associez les chantiers (VRD, Gros Œuvre, Voirie) au gabarit "Showcase Gallery".
-                </p>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-3 text-xs">
-                  <div className="p-3 rounded border border-slate-700 bg-slate-800/60">
-                    <div className="font-bold text-slate-200">Plateforme Logistique Fès-Sud</div>
-                    <div className="text-[11px] text-slate-400">Terrassement de 35 000 m²</div>
-                    <Badge variant="success" className="text-[9px] mt-2">En Cours</Badge>
-                  </div>
-                  <div className="p-3 rounded border border-slate-700 bg-slate-800/60">
-                    <div className="font-bold text-slate-200">Voirie & Assainissement Bensouda</div>
-                    <div className="text-[11px] text-slate-400">Pose de collecteurs 1200mm</div>
-                    <Badge variant="default" className="text-[9px] mt-2">Réceptionné</Badge>
-                  </div>
-                  <div className="p-3 rounded border border-slate-700 bg-slate-800/60">
-                    <div className="font-bold text-slate-200">Résidence Les Jardins du Saïss</div>
-                    <div className="text-[11px] text-slate-400">Gros œuvre 4 blocs R+6</div>
-                    <Badge variant="warning" className="text-[9px] mt-2">Finitions</Badge>
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {activeSection === "machinery" && (
-              <div className="p-6 rounded-lg border border-slate-800 bg-slate-900/60 space-y-4">
-                <div className="flex items-center space-x-2 text-white">
-                  <Truck className="h-5 w-5 text-amber-500" />
-                  <h2 className="text-lg font-bold">Flotte & Parc d'Engins de Terrassement</h2>
-                </div>
-                <p className="text-xs text-slate-400">
-                  Catalogue relié en direct au gabarit "Catalog & Fleet Grid" de la page "Customize / Parc Matériel".
-                </p>
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3 text-xs">
-                  <div className="p-3 rounded border border-slate-700 bg-slate-800/60">
-                    <span className="font-mono text-amber-400 font-bold block">ENG-01</span>
-                    <span className="font-semibold text-white">Pelle Chenille CAT 330D</span>
-                    <span className="text-[10px] text-slate-400 block mt-1">30 Tonnes • Godet 1.8m³</span>
-                  </div>
-                  <div className="p-3 rounded border border-slate-700 bg-slate-800/60">
-                    <span className="font-mono text-amber-400 font-bold block">ENG-02</span>
-                    <span className="font-semibold text-white">Bulldozer Komatsu D65PX</span>
-                    <span className="text-[10px] text-slate-400 block mt-1">21 Tonnes • Lame Orientable</span>
-                  </div>
-                  <div className="p-3 rounded border border-slate-700 bg-slate-800/60">
-                    <span className="font-mono text-amber-400 font-bold block">ENG-03</span>
-                    <span className="font-semibold text-white">Niveleuse CAT 140M</span>
-                    <span className="text-[10px] text-slate-400 block mt-1">19 Tonnes • Précision Laser</span>
-                  </div>
-                  <div className="p-3 rounded border border-slate-700 bg-slate-800/60">
-                    <span className="font-mono text-amber-400 font-bold block">ENG-04</span>
-                    <span className="font-semibold text-white">Compacteur Bomag BW213</span>
-                    <span className="text-[10px] text-slate-400 block mt-1">13 Tonnes • Vibrant Monocylindre</span>
-                  </div>
-                </div>
-              </div>
-            )}
           </div>
         </main>
       </div>
 
       {/* Floating Toast Notification */}
       {toastMessage && (
-        <div className="fixed bottom-5 right-5 z-50 flex items-center space-x-2 rounded-lg border border-slate-700 bg-slate-900 px-4 py-2.5 text-xs text-slate-100 shadow-2xl animate-in slide-in-from-bottom-5">
-          <CheckCircle2 className="h-4 w-4 text-emerald-400" />
+        <div className="fixed bottom-5 right-5 z-50 flex items-center space-x-2 rtl:space-x-reverse rounded-xl border border-slate-700 bg-slate-900 px-4 py-3 text-xs text-slate-100 shadow-2xl animate-in slide-in-from-bottom-5">
+          <CheckCircle2 className="h-4 w-4 text-emerald-400 shrink-0" />
           <span>{toastMessage}</span>
         </div>
       )}
