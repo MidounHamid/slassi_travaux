@@ -91,19 +91,83 @@ export interface ApiCompanySettings {
   ice?: string;
 }
 
+export interface AuthUser {
+  id: number;
+  name: string;
+  email: string;
+  created_at?: string;
+}
+
+export interface LoginResponse {
+  success: boolean;
+  message?: string;
+  token: string;
+  token_type: string;
+  expires_in: number;
+  user: AuthUser;
+}
+
+export const TOKEN_STORAGE_KEY = "slassi_jwt_token";
+export const USER_STORAGE_KEY = "slassi_auth_user";
+
+export function getAuthToken(): string | null {
+  if (typeof window === "undefined") return null;
+  return localStorage.getItem(TOKEN_STORAGE_KEY);
+}
+
+export function setAuthToken(token: string | null): void {
+  if (typeof window === "undefined") return;
+  if (token) {
+    localStorage.setItem(TOKEN_STORAGE_KEY, token);
+  } else {
+    localStorage.removeItem(TOKEN_STORAGE_KEY);
+  }
+}
+
+export function getStoredUser(): AuthUser | null {
+  if (typeof window === "undefined") return null;
+  const raw = localStorage.getItem(USER_STORAGE_KEY);
+  if (!raw) return null;
+  try {
+    return JSON.parse(raw);
+  } catch {
+    return null;
+  }
+}
+
+export function setStoredUser(user: AuthUser | null): void {
+  if (typeof window === "undefined") return;
+  if (user) {
+    localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(user));
+  } else {
+    localStorage.removeItem(USER_STORAGE_KEY);
+  }
+}
+
 async function request<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
+  const token = getAuthToken();
+  const headers: Record<string, string> = {
+    "Content-Type": "application/json",
+    Accept: "application/json",
+    ...((options.headers as Record<string, string>) || {}),
+  };
+
+  if (token && !headers["Authorization"]) {
+    headers["Authorization"] = `Bearer ${token}`;
+  }
+
   const url = `${API_BASE_URL}${endpoint}`;
   const response = await fetch(url, {
-    headers: {
-      "Content-Type": "application/json",
-      Accept: "application/json",
-      ...options.headers,
-    },
     ...options,
+    headers,
   });
 
   if (!response.ok) {
     const errorBody = await response.json().catch(() => ({}));
+    if (response.status === 401 && !endpoint.includes("/auth/login")) {
+      setAuthToken(null);
+      setStoredUser(null);
+    }
     throw new Error(errorBody.message || `API error ${response.status}: ${response.statusText}`);
   }
 
@@ -272,5 +336,41 @@ export const api = {
 
   async deletePage(id: string): Promise<void> {
     await request(`/pages/${id}`, { method: "DELETE" });
+  },
+
+  // 7. Authentication (JWT)
+  async login(credentials: { email: string; password: string }): Promise<LoginResponse> {
+    const res = await request<LoginResponse>("/auth/login", {
+      method: "POST",
+      body: JSON.stringify(credentials),
+    });
+    if (res.token) {
+      setAuthToken(res.token);
+      setStoredUser(res.user);
+    }
+    return res;
+  },
+
+  async me(): Promise<{ success: boolean; user: AuthUser; token_expires_at?: string }> {
+    return request<{ success: boolean; user: AuthUser; token_expires_at?: string }>("/auth/me");
+  },
+
+  async logout(): Promise<void> {
+    try {
+      await request<{ success: boolean; message: string }>("/auth/logout", {
+        method: "POST",
+      });
+    } catch (e) {
+      console.warn("Logout request error:", e);
+    } finally {
+      setAuthToken(null);
+      setStoredUser(null);
+    }
+  },
+
+  getStoredToken: getAuthToken,
+  getStoredUser: getStoredUser,
+  isAuthenticated(): boolean {
+    return !!getAuthToken();
   },
 };

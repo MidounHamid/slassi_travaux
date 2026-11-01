@@ -8,16 +8,20 @@ import {
   ShieldCheck,
   Search,
   Sparkles,
+  LogOut,
 } from "lucide-react";
 import { Avatar } from "@/components/ui/avatar";
 import { useLanguage } from "@/context/LanguageContext";
+import { AuthUser } from "@/lib/api";
 
 interface TopHeaderProps {
   onSearchClick?: () => void;
   onNavigateHome?: () => void;
+  user?: AuthUser | null;
+  onLogout?: () => void;
 }
 
-export function TopHeader({ onSearchClick, onNavigateHome }: TopHeaderProps) {
+export function TopHeader({ onSearchClick, onNavigateHome, user, onLogout }: TopHeaderProps) {
   const { language, setLanguage, t } = useLanguage();
 
   return (
@@ -106,21 +110,50 @@ export function TopHeader({ onSearchClick, onNavigateHome }: TopHeaderProps) {
 
         <div className="h-5 w-[1px] bg-slate-800 hidden sm:block" />
 
-        {/* User Pill: Hamid Slassi */}
-        <div className="flex items-center space-x-2 rtl:space-x-reverse px-2.5 py-1 rounded-xl bg-slate-800/80 border border-slate-700/80 text-xs">
-          <Avatar
-            size="sm"
-            fallback="HS"
-            className="bg-gradient-to-br from-amber-500 to-amber-600 text-slate-950 font-black border-amber-400/30 text-xs h-7 w-7"
-          />
-          <div className="hidden sm:flex flex-col text-left rtl:text-right leading-tight">
-            <div className="flex items-center space-x-1 rtl:space-x-reverse">
-              <span className="font-bold text-white">Hamid Slassi</span>
-              <ShieldCheck className="h-3 w-3 text-emerald-400" />
+        {/* User Pill */}
+        {(() => {
+          const userName = user?.name || "Hamid Slassi";
+          const userInitials = userName
+            .split(" ")
+            .map((n) => n[0])
+            .slice(0, 2)
+            .join("")
+            .toUpperCase() || "HS";
+
+          return (
+            <div className="flex items-center space-x-2 rtl:space-x-reverse px-2.5 py-1 rounded-xl bg-slate-800/80 border border-slate-700/80 text-xs">
+              <Avatar
+                size="sm"
+                fallback={userInitials}
+                className="bg-gradient-to-br from-amber-500 to-amber-600 text-slate-950 font-black border-amber-400/30 text-xs h-7 w-7"
+              />
+              <div className="hidden sm:flex flex-col text-left rtl:text-right leading-tight">
+                <div className="flex items-center space-x-1 rtl:space-x-reverse">
+                  <span className="font-bold text-white">{userName}</span>
+                  <ShieldCheck className="h-3 w-3 text-emerald-400" />
+                </div>
+                <span className="text-[10px] text-slate-400">
+                  {user?.email || "Directeur Général"}
+                </span>
+              </div>
             </div>
-            <span className="text-[10px] text-slate-400">Directeur Général</span>
-          </div>
-        </div>
+          );
+        })()}
+
+        {/* Logout Button */}
+        {onLogout && (
+          <button
+            type="button"
+            onClick={onLogout}
+            title={language === "ar" ? "تسجيل الخروج" : "Déconnexion"}
+            className="flex items-center space-x-1.5 rtl:space-x-reverse px-2.5 py-1.5 rounded-xl bg-red-500/10 hover:bg-red-500/20 text-red-300 hover:text-red-200 border border-red-500/30 transition-all cursor-pointer text-xs"
+          >
+            <LogOut className="h-3.5 w-3.5" />
+            <span className="hidden md:inline font-medium">
+              {language === "ar" ? "خروج" : "Déconnexion"}
+            </span>
+          </button>
+        )}
       </div>
     </header>
   );

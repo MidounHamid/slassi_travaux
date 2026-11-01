@@ -6,8 +6,6 @@ import { SimpleDashboard } from "@/components/admin/SimpleDashboard";
 import { SimpleProjects } from "@/components/admin/SimpleProjects";
 import { SimpleMachinery } from "@/components/admin/SimpleMachinery";
 import { SimplePages } from "@/components/admin/SimplePages";
-import { PagetreeOverview } from "@/components/admin/PagetreeOverview";
-import { LayoutsGallery } from "@/components/admin/LayoutsGallery";
 import { CompanySettings } from "@/components/admin/CompanySettings";
 import { QuotesList } from "@/components/admin/QuotesList";
 import { LayoutPreviewModal } from "@/components/admin/LayoutPreviewModal";
@@ -15,9 +13,10 @@ import { NewPageModal } from "@/components/admin/NewPageModal";
 import { PageEditModal } from "@/components/admin/PageEditModal";
 import { INITIAL_PAGES } from "@/data/initialData";
 import { PageNode, LayoutType } from "@/types/pagetree";
-import { CheckCircle2 } from "lucide-react";
+import { CheckCircle2, Building2 } from "lucide-react";
 import { useLanguage } from "@/context/LanguageContext";
-import { api } from "@/lib/api";
+import { api, AuthUser } from "@/lib/api";
+import { LoginForm } from "@/components/admin/LoginForm";
 
 export default function AdminPage() {
   const { t, language } = useLanguage();
@@ -29,8 +28,41 @@ export default function AdminPage() {
   const [isNewPageOpen, setIsNewPageOpen] = useState(false);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
-  // Fetch pages from API on mount
+  // Authentication State
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
+  const [currentUser, setCurrentUser] = useState<AuthUser | null>(null);
+
+  // Check JWT authentication state on mount
   useEffect(() => {
+    async function checkAuth() {
+      if (api.isAuthenticated()) {
+        const storedUser = api.getStoredUser();
+        if (storedUser) {
+          setCurrentUser(storedUser);
+        }
+        setIsAuthenticated(true);
+
+        // Verify token in background against Laravel backend
+        try {
+          const res = await api.me();
+          if (res.success && res.user) {
+            setCurrentUser(res.user);
+          }
+        } catch (err) {
+          console.warn("Session expired or token invalid:", err);
+          setIsAuthenticated(false);
+          setCurrentUser(null);
+        }
+      } else {
+        setIsAuthenticated(false);
+      }
+    }
+    checkAuth();
+  }, []);
+
+  // Fetch pages from API when authenticated
+  useEffect(() => {
+    if (!isAuthenticated) return;
     async function loadPages() {
       try {
         const data = await api.getPages();
@@ -42,11 +74,24 @@ export default function AdminPage() {
       }
     }
     loadPages();
-  }, []);
+  }, [isAuthenticated]);
 
   const showToast = (msg: string) => {
     setToastMessage(msg);
     setTimeout(() => setToastMessage(null), 3500);
+  };
+
+  const handleLoginSuccess = (user: AuthUser, token: string) => {
+    setCurrentUser(user);
+    setIsAuthenticated(true);
+    showToast(language === "ar" ? `مرحباً بك، ${user.name}` : `Bienvenue, ${user.name}`);
+  };
+
+  const handleLogout = async () => {
+    await api.logout();
+    setCurrentUser(null);
+    setIsAuthenticated(false);
+    showToast(language === "ar" ? "تم تسجيل الخروج بنجاح" : "Déconnexion effectuée avec succès.");
   };
 
   // Update layout when changed from the select dropdowns
@@ -144,10 +189,33 @@ export default function AdminPage() {
     showToast(`Propriétés de la page "${updatedPage.title}" enregistrées.`);
   };
 
+  // 1. Initial hydration / checking JWT session
+  if (isAuthenticated === null) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center bg-[#070b14] text-slate-300">
+        <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center text-slate-950 font-black mb-4 shadow-lg shadow-amber-500/20 animate-pulse">
+          <Building2 className="h-6 w-6" />
+        </div>
+        <div className="h-5 w-5 border-2 border-amber-500 border-t-transparent rounded-full animate-spin mb-3" />
+        <p className="text-xs font-semibold tracking-wider text-slate-400 uppercase">
+          Slassi Travaux • Chargement sécurisé...
+        </p>
+      </div>
+    );
+  }
+
+  // 2. Unauthenticated: Render the JWT Login Form
+  if (!isAuthenticated) {
+    return <LoginForm onLoginSuccess={handleLoginSuccess} />;
+  }
+
+  // 3. Authenticated: Render the Admin Dashboard
   return (
     <div className="min-h-screen flex flex-col bg-[#080d1a] text-slate-100">
       {/* Top Header bar */}
       <TopHeader
+        user={currentUser}
+        onLogout={handleLogout}
         onSearchClick={() => setActiveSection("dashboard")}
         onNavigateHome={() => setActiveSection("dashboard")}
       />
@@ -184,7 +252,6 @@ export default function AdminPage() {
                 pages={pages}
                 onUpdatePageLayout={handleUpdatePageLayout}
                 onPreviewLayout={(layout) => setSelectedPreviewLayout(layout)}
-                onSwitchToExpertMode={() => setActiveSection("pagetree")}
               />
             )}
 
@@ -193,41 +260,6 @@ export default function AdminPage() {
 
             {/* 6. Company Legal & Contact Settings */}
             {activeSection === "settings" && <CompanySettings />}
-
-            {/* 7. Advanced Technical Pagetree Overview (TYPO3 CMS Style) */}
-            {activeSection === "pagetree" && (
-              <div className="space-y-4">
-                <div className="flex items-center justify-between pb-2 border-b border-slate-800">
-                  <span className="text-xs text-slate-400">
-                    Mode Expert : Arborescence technique avancée et règles d'héritage de modèles.
-                  </span>
-                  <button
-                    onClick={() => setActiveSection("pages")}
-                    className="text-xs text-amber-400 hover:underline cursor-pointer"
-                  >
-                    ← Revenir au Mode Simple (Recommandé)
-                  </button>
-                </div>
-                <PagetreeOverview
-                  pages={pages}
-                  onUpdatePageLayout={handleUpdatePageLayout}
-                  onPreviewLayout={(layout) => setSelectedPreviewLayout(layout)}
-                  onEditPage={(page) => setEditingPage(page)}
-                  onPreviewPage={(page) => setSelectedPreviewLayout(page.actualLayout)}
-                />
-              </div>
-            )}
-
-            {/* 8. Advanced Layouts Gallery */}
-            {activeSection === "layouts" && (
-              <LayoutsGallery
-                onSelectPreview={(layout) => setSelectedPreviewLayout(layout)}
-                onApplyToTree={(layout) => {
-                  setSelectedPreviewLayout(layout);
-                  showToast(`Gabarit "${layout}" sélectionné.`);
-                }}
-              />
-            )}
           </div>
         </main>
       </div>

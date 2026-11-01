@@ -75,21 +75,6 @@ export function Sidebar({ activeSection, onSelectSection }: SidebarProps) {
     },
   ];
 
-  const advancedItems = [
-    {
-      id: "pagetree",
-      label: t("nav_pagetree"),
-      desc: t("nav_pagetree_desc"),
-      icon: FolderTree,
-    },
-    {
-      id: "layouts",
-      label: t("nav_layouts"),
-      desc: t("nav_layouts_desc"),
-      icon: Layers,
-    },
-  ];
-
   return (
     <aside
       className={cn(
@@ -169,46 +154,6 @@ export function Sidebar({ activeSection, onSelectSection }: SidebarProps) {
                         {item.badge}
                       </span>
                     )}
-                  </div>
-                )}
-              </button>
-            );
-          })}
-
-          {/* Expert / Advanced Mode Divider */}
-          <div className="pt-3 pb-1">
-            {!collapsed && (
-              <div className="px-2 text-[10px] uppercase font-bold tracking-wider text-slate-400 flex items-center justify-between">
-                <span>{language === "ar" ? "الوضع المتقدم" : "Mode Avancé"}</span>
-                <span className="text-[9px] text-slate-400 font-mono">CMS</span>
-              </div>
-            )}
-          </div>
-
-          {advancedItems.map((item) => {
-            const Icon = item.icon;
-            const isActive = activeSection === item.id;
-            return (
-              <button
-                key={item.id}
-                onClick={() => onSelectSection(item.id)}
-                className={cn(
-                  "w-full flex items-center space-x-2.5 rtl:space-x-reverse px-3 py-2 rounded-lg text-xs font-medium transition-all cursor-pointer group text-left rtl:text-right opacity-80 hover:opacity-100",
-                  isActive
-                    ? "bg-sky-600/20 text-sky-300 border border-sky-500/30"
-                    : "text-slate-400 hover:bg-slate-800/40 hover:text-slate-200"
-                )}
-                title={collapsed ? item.label : undefined}
-              >
-                <Icon
-                  className={cn(
-                    "h-3.5 w-3.5 shrink-0 transition-transform",
-                    isActive ? "text-sky-400" : "text-slate-400"
-                  )}
-                />
-                {!collapsed && (
-                  <div className="truncate">
-                    <div className="truncate text-[11px]">{item.label}</div>
                   </div>
                 )}
               </button>

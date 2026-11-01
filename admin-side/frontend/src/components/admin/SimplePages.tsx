@@ -31,14 +31,12 @@ interface SimplePagesProps {
     value: LayoutType | "None (Inherit)"
   ) => void;
   onPreviewLayout: (layout: LayoutType) => void;
-  onSwitchToExpertMode: () => void;
 }
 
 export function SimplePages({
   pages,
   onUpdatePageLayout,
   onPreviewLayout,
-  onSwitchToExpertMode,
 }: SimplePagesProps) {
   const { t, language } = useLanguage();
 
@@ -83,15 +81,6 @@ export function SimplePages({
             Visualisez et modifiez directement le modèle de présentation de chaque page du site Slassi Travaux.
           </p>
         </div>
-
-        <Button
-          variant="outline"
-          onClick={onSwitchToExpertMode}
-          className="text-xs border-slate-700 text-slate-300 hover:text-white hover:bg-slate-800 flex items-center gap-1.5 self-start sm:self-auto cursor-pointer"
-        >
-          <SlidersHorizontal className="h-3.5 w-3.5 text-sky-400" />
-          <span>Mode Arborescence Technique (TYPO3)</span>
-        </Button>
       </div>
 
       {/* Pages List */}

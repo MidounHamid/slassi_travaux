@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\CompanySettingController;
 use App\Http\Controllers\Api\DashboardController;
 use App\Http\Controllers\Api\MachineryController;
@@ -22,6 +23,13 @@ Route::get('/health', function () {
         'app' => 'Slassi Travaux API',
         'timestamp' => now()->toIso8601String(),
     ]);
+});
+
+// Authentication API (JWT)
+Route::prefix('auth')->group(function () {
+    Route::post('/login', [AuthController::class, 'login']);
+    Route::get('/me', [AuthController::class, 'me']);
+    Route::post('/logout', [AuthController::class, 'logout']);
 });
 
 // Dashboard Analytics & Metrics
