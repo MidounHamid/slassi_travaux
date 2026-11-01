@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   Building2, 
   MapPin, 
@@ -10,12 +10,28 @@ import {
 import { projectsList } from '../data/projectsData';
 import { Project } from '../types';
 import { useLanguage } from '../context/LanguageContext';
+import { clientApi } from '../lib/api';
 import ProjectModal from './ProjectModal';
 
 export default function ProjectsSection() {
   const { lang, t } = useLanguage();
   const [activeCategory, setActiveCategory] = useState('all');
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
+  const [projects, setProjects] = useState<Project[]>(projectsList);
+
+  useEffect(() => {
+    async function loadProjects() {
+      try {
+        const data = await clientApi.getProjects();
+        if (data && data.length > 0) {
+          setProjects(data);
+        }
+      } catch (err) {
+        console.warn("Using default project list:", err);
+      }
+    }
+    loadProjects();
+  }, []);
 
   const filterTabs = [
     { id: 'all', label: t.projects.filterAll },
@@ -26,8 +42,8 @@ export default function ProjectsSection() {
   ];
 
   const filteredProjects = activeCategory === 'all'
-    ? projectsList
-    : projectsList.filter(p => p.category === activeCategory);
+    ? projects
+    : projects.filter(p => p.category === activeCategory);
 
   return (
     <section id="projects" className="py-20 lg:py-28 bg-slate-900 text-white relative">

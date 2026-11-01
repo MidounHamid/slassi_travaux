@@ -1,22 +1,21 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   Truck,
   Plus,
-  ShieldCheck,
-  Wrench,
-  CheckCircle2,
   Trash2,
   X,
   Search,
   MapPin,
+  RefreshCw,
 } from "lucide-react";
-import { AdminMachine, INITIAL_MACHINERY } from "@/data/initialData";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useLanguage } from "@/context/LanguageContext";
+import { api, ApiMachinery } from "@/lib/api";
+import { INITIAL_MACHINERY } from "@/data/initialData";
 
 interface SimpleMachineryProps {
   onNewMachineModalOpen?: () => void;
@@ -24,18 +23,128 @@ interface SimpleMachineryProps {
 
 export function SimpleMachinery({ onNewMachineModalOpen }: SimpleMachineryProps) {
   const { language } = useLanguage();
-  const [machines, setMachines] = useState<AdminMachine[]>(INITIAL_MACHINERY);
+  const [machines, setMachines] = useState<ApiMachinery[]>(INITIAL_MACHINERY);
+  const [loading, setLoading] = useState(true);
   const [filterCategory, setFilterCategory] = useState<string>("all");
   const [search, setSearch] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   // New Machine Form State
   const [newCode, setNewCode] = useState("");
   const [newName, setNewName] = useState("");
-  const [newCategory, setNewCategory] = useState<AdminMachine["category"]>("Terrassement");
+  const [newCategory, setNewCategory] = useState<ApiMachinery["category"]>("Terrassement");
   const [newSpecs, setNewSpecs] = useState("");
-  const [newStatus, setNewStatus] = useState<AdminMachine["status"]>("available");
+  const [newStatus, setNewStatus] = useState<ApiMachinery["status"]>("available");
   const [newSite, setNewSite] = useState("Dépôt Central Fès");
+
+  const fetchMachinery = async () => {
+    try {
+      setLoading(true);
+      const res = await api.getMachinery({
+        category: filterCategory,
+        search: search.trim() || undefined,
+      });
+      if (res && res.data && res.data.length > 0) {
+        setMachines(res.data);
+      }
+    } catch (err) {
+      console.warn("API fetch machinery failed, keeping state:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchMachinery();
+  }, [filterCategory]);
+
+  const handleAddMachine = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newName.trim()) return;
+
+    setIsSubmitting(true);
+    const newMachData: Partial<ApiMachinery> = {
+      code: newCode.trim() || `ENG-${machines.length + 1 < 10 ? "0" : ""}${machines.length + 1}`,
+      name: newName.trim(),
+      category: newCategory,
+      specs: newSpecs.trim() || "Spécifications standard",
+      status: newStatus,
+      currentSite: newSite.trim() || "Dépôt Central Fès",
+    };
+
+    try {
+      const created = await api.createMachine(newMachData);
+      setMachines([created, ...machines]);
+    } catch (err) {
+      console.warn("API machine creation failed, saving locally:", err);
+      const localMach: ApiMachinery = {
+        id: `mach-${Date.now()}`,
+        code: newMachData.code!,
+        name: newMachData.name!,
+        category: newMachData.category!,
+        specs: newMachData.specs!,
+        status: newMachData.status!,
+        currentSite: newMachData.currentSite!,
+      };
+      setMachines([localMach, ...machines]);
+    } finally {
+      setIsSubmitting(false);
+      setIsModalOpen(false);
+      // Reset
+      setNewCode("");
+      setNewName("");
+      setNewSpecs("");
+      setNewSite("Dépôt Central Fès");
+    }
+  };
+
+  const handleStatusChange = async (id: string | number, status: ApiMachinery["status"]) => {
+    const updatedSite =
+      status === "available"
+        ? "Dépôt Central Fès"
+        : status === "maintenance"
+        ? "Atelier Technique Fès"
+        : "Sur Chantier";
+
+    // Optimistic UI update
+    setMachines(
+      machines.map((m) => {
+        if (m.id === id) {
+          return {
+            ...m,
+            status,
+            currentSite: updatedSite,
+          };
+        }
+        return m;
+      })
+    );
+
+    try {
+      await api.updateMachine(id, {
+        status,
+        currentSite: updatedSite,
+      });
+    } catch (err) {
+      console.warn("API status change failed:", err);
+    }
+  };
+
+  const handleDelete = async (id: string | number) => {
+    if (!confirm("Voulez-vous retirer cet engin de la flotte ?")) return;
+
+    try {
+      await api.deleteMachine(id);
+    } catch (err) {
+      console.warn("API delete failed:", err);
+    }
+    setMachines(machines.filter((m) => m.id !== id));
+  };
+
+  const availableCount = machines.filter((m) => m.status === "available").length;
+  const onSiteCount = machines.filter((m) => m.status === "on_site").length;
+  const maintenanceCount = machines.filter((m) => m.status === "maintenance").length;
 
   const filtered = machines.filter((m) => {
     const matchesCat = filterCategory === "all" || m.category === filterCategory;
@@ -47,57 +156,6 @@ export function SimpleMachinery({ onNewMachineModalOpen }: SimpleMachineryProps)
     return matchesCat && matchesSearch;
   });
 
-  const handleAddMachine = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!newName.trim()) return;
-
-    const newMach: AdminMachine = {
-      id: `mach-${Date.now()}`,
-      code: newCode.trim() || `ENG-${machines.length + 1 < 10 ? "0" : ""}${machines.length + 1}`,
-      name: newName.trim(),
-      category: newCategory,
-      specs: newSpecs.trim() || "Spécifications standard",
-      status: newStatus,
-      currentSite: newSite.trim() || "Dépôt Central Fès",
-    };
-
-    setMachines([newMach, ...machines]);
-    setIsModalOpen(false);
-    // Reset
-    setNewCode("");
-    setNewName("");
-    setNewSpecs("");
-    setNewSite("Dépôt Central Fès");
-  };
-
-  const handleStatusChange = (id: string, status: AdminMachine["status"]) => {
-    setMachines(
-      machines.map((m) => {
-        if (m.id === id) {
-          return {
-            ...m,
-            status,
-            currentSite:
-              status === "available"
-                ? "Dépôt Central Fès"
-                : status === "maintenance"
-                ? "Atelier Technique Fès"
-                : m.currentSite || "Chantier en cours",
-          };
-        }
-        return m;
-      })
-    );
-  };
-
-  const handleDelete = (id: string) => {
-    setMachines(machines.filter((m) => m.id !== id));
-  };
-
-  const availableCount = machines.filter((m) => m.status === "available").length;
-  const onSiteCount = machines.filter((m) => m.status === "on_site").length;
-  const maintenanceCount = machines.filter((m) => m.status === "maintenance").length;
-
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -105,23 +163,35 @@ export function SimpleMachinery({ onNewMachineModalOpen }: SimpleMachineryProps)
         <div>
           <div className="inline-flex items-center gap-2 px-2.5 py-0.5 rounded-full bg-emerald-500/15 border border-emerald-500/30 text-emerald-400 text-xs font-semibold mb-1.5">
             <Truck className="h-3.5 w-3.5" />
-            <span>Flotte BTP Slassi Travaux</span>
+            <span>Flotte BTP Slassi Travaux (MySQL)</span>
           </div>
           <h1 className="text-xl font-bold text-white tracking-tight">
             Parc Matériel & Engins Lourds
           </h1>
           <p className="text-xs text-slate-400">
-            Suivez l'état et l'affectation de vos pelles, bulldozers, niveleuses et camions sur vos chantiers.
+            Suivez l'état et l'affectation de vos pelles, bulldozers, niveleuses et camions connectés en direct.
           </p>
         </div>
 
-        <Button
-          onClick={() => setIsModalOpen(true)}
-          className="bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-xs flex items-center gap-1.5 shadow-md self-start sm:self-auto"
-        >
-          <Plus className="h-4 w-4" />
-          <span>Ajouter un Engin</span>
-        </Button>
+        <div className="flex items-center gap-2 self-start sm:self-auto">
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={fetchMachinery}
+            className="text-xs border-slate-700 text-slate-300 hover:text-white hover:bg-slate-800"
+          >
+            <RefreshCw className={`h-3.5 w-3.5 mr-1 ${loading ? "animate-spin text-emerald-400" : ""}`} />
+            <span>Actualiser</span>
+          </Button>
+
+          <Button
+            onClick={() => setIsModalOpen(true)}
+            className="bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-xs flex items-center gap-1.5 shadow-md cursor-pointer"
+          >
+            <Plus className="h-4 w-4" />
+            <span>Ajouter un Engin</span>
+          </Button>
+        </div>
       </div>
 
       {/* Quick Status Badges */}
@@ -236,7 +306,7 @@ export function SimpleMachinery({ onNewMachineModalOpen }: SimpleMachineryProps)
                 <button
                   onClick={() => handleDelete(m.id)}
                   title="Supprimer cet engin"
-                  className="text-slate-500 hover:text-red-400 p-0.5"
+                  className="text-slate-500 hover:text-red-400 p-0.5 cursor-pointer"
                 >
                   <Trash2 className="h-3 w-3" />
                 </button>
@@ -296,7 +366,7 @@ export function SimpleMachinery({ onNewMachineModalOpen }: SimpleMachineryProps)
               </h2>
               <button
                 onClick={() => setIsModalOpen(false)}
-                className="p-1 rounded text-slate-400 hover:text-white hover:bg-slate-800"
+                className="p-1 rounded text-slate-400 hover:text-white hover:bg-slate-800 cursor-pointer"
               >
                 <X className="h-4 w-4" />
               </button>
@@ -309,7 +379,7 @@ export function SimpleMachinery({ onNewMachineModalOpen }: SimpleMachineryProps)
                     Code Engin *
                   </label>
                   <Input
-                    placeholder="ex: ENG-07"
+                    placeholder="ex: ENG-09"
                     value={newCode}
                     onChange={(e) => setNewCode(e.target.value)}
                   />
@@ -321,7 +391,7 @@ export function SimpleMachinery({ onNewMachineModalOpen }: SimpleMachineryProps)
                   <select
                     value={newCategory}
                     onChange={(e) =>
-                      setNewCategory(e.target.value as AdminMachine["category"])
+                      setNewCategory(e.target.value as ApiMachinery["category"])
                     }
                     className="w-full h-8 px-2 rounded-md bg-slate-800 border border-slate-700 text-slate-200 text-xs focus:outline-none"
                   >
@@ -379,9 +449,10 @@ export function SimpleMachinery({ onNewMachineModalOpen }: SimpleMachineryProps)
                 <Button
                   type="submit"
                   size="sm"
-                  className="bg-emerald-600 hover:bg-emerald-500 text-white font-bold"
+                  disabled={isSubmitting}
+                  className="bg-emerald-600 hover:bg-emerald-500 text-white font-bold cursor-pointer"
                 >
-                  Enregistrer l'Engin
+                  {isSubmitting ? "Enregistrement..." : "Enregistrer l'Engin"}
                 </Button>
               </div>
             </form>

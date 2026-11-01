@@ -1,9 +1,8 @@
 "use client";
 
-import React from "react";
+import React, { useEffect, useState } from "react";
 import {
   FileText,
-  Layers,
   Truck,
   Calculator,
   Plus,
@@ -17,12 +16,13 @@ import {
   Building2,
   Clock,
   Sparkles,
+  RefreshCw,
 } from "lucide-react";
-import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { useLanguage } from "@/context/LanguageContext";
-import { INITIAL_PROJECTS, INITIAL_MACHINERY } from "@/data/initialData";
+import { INITIAL_PROJECTS } from "@/data/initialData";
+import { api, DashboardMetrics, ApiQuote, ApiProject } from "@/lib/api";
 
 interface SimpleDashboardProps {
   onNavigate: (section: string) => void;
@@ -37,41 +37,37 @@ export function SimpleDashboard({
 }: SimpleDashboardProps) {
   const { t, language } = useLanguage();
 
-  const recentQuotes = [
-    {
-      id: "DEV-2026-089",
-      client: "Société Immobilière Saïss",
-      project: "Terrassement & Plateforme Logistique 4 200 m²",
-      location: "Zone Industrielle Bensouda, Fès",
-      amount: "285 000 MAD",
-      date: language === "ar" ? "اليوم في 09:30" : "Aujourd'hui à 09:30",
-      status: "pending",
-      phone: "+212 6 61 12 34 56",
-      whatsapp: "212661123456",
-    },
-    {
-      id: "DEV-2026-088",
-      client: "Groupe Hôtelier Médina",
-      project: "VRD & Assainissement Complexe Touristique",
-      location: "Route d'Immouzzer, Fès",
-      amount: "540 000 MAD",
-      date: language === "ar" ? "أمس في 16:15" : "Hier à 16:15",
-      status: "reviewed",
-      phone: "+212 6 62 98 76 54",
-      whatsapp: "212662987654",
-    },
-    {
-      id: "DEV-2026-087",
-      client: "Promoteur Privé",
-      project: "Gros Œuvre & Fondations Immeuble R+5",
-      location: "Quartier Champs de Course, Fès",
-      amount: "1 250 000 MAD",
-      date: language === "ar" ? "14 أكتوبر 2026" : "14 Oct 2026",
-      status: "contacted",
-      phone: "+212 6 63 45 67 89",
-      whatsapp: "212663456789",
-    },
-  ];
+  const [loading, setLoading] = useState(true);
+  const [metrics, setMetrics] = useState<DashboardMetrics>({
+    quotes: { total: 5, pending: 2, reviewed: 1, contacted: 2 },
+    projects: { total: 6, ongoing: 3, done: 3 },
+    machinery: { total: 8, available: 4, onSite: 3, maintenance: 1 },
+    pages: { total: 7, online: 7 },
+    company: { name: "SLASSI DE TRAVAUX DIVERS", capital: "17 000 000 MAD", city: "Fès" },
+  });
+  const [recentQuotes, setRecentQuotes] = useState<ApiQuote[]>([]);
+  const [ongoingProjects, setOngoingProjects] = useState<ApiProject[]>([]);
+  const [isLive, setIsLive] = useState(false);
+
+  const fetchDashboardData = async () => {
+    try {
+      setLoading(true);
+      const data = await api.getDashboardStats();
+      setMetrics(data.metrics);
+      setRecentQuotes(data.recentQuotes);
+      setOngoingProjects(data.ongoingProjects);
+      setIsLive(true);
+    } catch (err) {
+      console.warn("Backend not reached, using fallback initial data:", err);
+      setIsLive(false);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchDashboardData();
+  }, []);
 
   return (
     <div className="space-y-6">
@@ -79,10 +75,24 @@ export function SimpleDashboard({
       <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-slate-900 via-slate-800 to-amber-950/40 border border-slate-700/80 p-6 shadow-xl">
         <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div className="space-y-1.5">
-            <div className="inline-flex items-center space-x-2 rtl:space-x-reverse px-2.5 py-1 rounded-full bg-amber-500/15 border border-amber-500/30 text-amber-400 text-xs font-semibold">
-              <Sparkles className="h-3.5 w-3.5 text-amber-400" />
-              <span>{t("mode_simple")}</span>
+            <div className="flex items-center gap-2">
+              <div className="inline-flex items-center space-x-2 rtl:space-x-reverse px-2.5 py-1 rounded-full bg-amber-500/15 border border-amber-500/30 text-amber-400 text-xs font-semibold">
+                <Sparkles className="h-3.5 w-3.5 text-amber-400" />
+                <span>{t("mode_simple")}</span>
+              </div>
+
+              {isLive ? (
+                <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-emerald-500/15 border border-emerald-500/30 text-emerald-400 text-[11px] font-semibold">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                  <span>Base de données SQL connectée</span>
+                </span>
+              ) : (
+                <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-slate-800 text-slate-400 text-[11px]">
+                  Mode Local
+                </span>
+              )}
             </div>
+
             <h1 className="text-2xl font-black text-white tracking-tight">
               {t("dashboard_welcome")}
             </h1>
@@ -92,18 +102,26 @@ export function SimpleDashboard({
             <div className="flex flex-wrap items-center gap-3 text-xs text-slate-400 pt-1">
               <span className="flex items-center gap-1.5 text-slate-300 font-medium">
                 <Building2 className="h-3.5 w-3.5 text-amber-400" />
-                <span>Slassi De Travaux SARL AU</span>
+                <span>{metrics.company.name} SARL AU</span>
               </span>
               <span>•</span>
               <span className="text-amber-400/90 font-mono font-semibold">
-                Capital : 17 000 000 MAD
+                Capital : {metrics.company.capital}
               </span>
               <span>•</span>
-              <span className="text-slate-300">Siège : Fès, Maroc</span>
+              <span className="text-slate-300">Siège : {metrics.company.city}, Maroc</span>
             </div>
           </div>
 
           <div className="flex items-center gap-2 self-start md:self-center shrink-0">
+            <button
+              onClick={fetchDashboardData}
+              title="Rafraîchir les données SQL"
+              className="p-2.5 rounded-xl bg-slate-800/80 hover:bg-slate-700 text-slate-300 border border-slate-700 transition-colors cursor-pointer"
+            >
+              <RefreshCw className={`h-4 w-4 ${loading ? "animate-spin text-amber-400" : ""}`} />
+            </button>
+
             <a
               href="http://localhost:3000"
               target="_blank"
@@ -117,7 +135,7 @@ export function SimpleDashboard({
         </div>
       </div>
 
-      {/* 4 Simple Stats Cards */}
+      {/* 4 Simple Stats Cards (Live from SQL) */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {/* Quotes Card */}
         <div
@@ -130,13 +148,13 @@ export function SimpleDashboard({
                 {language === "ar" ? "طلبات التقدير" : "Demandes Devis"}
               </span>
               <div className="text-2xl font-black text-white tracking-tight flex items-baseline gap-2">
-                <span>12</span>
+                <span>{metrics.quotes.total}</span>
                 <span className="text-xs font-semibold text-amber-400">
-                  {language === "ar" ? "+3 اليوم" : "+3 en attente"}
+                  {metrics.quotes.pending} {language === "ar" ? "جديدة" : "en attente"}
                 </span>
               </div>
               <p className="text-[11px] text-slate-400">
-                {language === "ar" ? "عبر حاسبة الموقع الإلكتروني" : "Reçus via le simulateur"}
+                {language === "ar" ? "عبر حاسبة الموقع الإلكتروني" : "Reçus via le simulateur web"}
               </p>
             </div>
             <div className="p-3 rounded-xl bg-purple-500/15 border border-purple-500/30 text-purple-400 group-hover:scale-110 transition-transform">
@@ -160,9 +178,9 @@ export function SimpleDashboard({
                 {language === "ar" ? "الأوراش الجارية" : "Chantiers Actifs"}
               </span>
               <div className="text-2xl font-black text-white tracking-tight flex items-baseline gap-2">
-                <span>14</span>
+                <span>{metrics.projects.ongoing}</span>
                 <span className="text-xs font-semibold text-sky-400">
-                  {language === "ar" ? "فاس ونواحيها" : "Fès & Région"}
+                  {metrics.projects.total} au total
                 </span>
               </div>
               <p className="text-[11px] text-slate-400">
@@ -190,13 +208,13 @@ export function SimpleDashboard({
                 {language === "ar" ? "أسطول الآليات" : "Parc d'Engins"}
               </span>
               <div className="text-2xl font-black text-white tracking-tight flex items-baseline gap-2">
-                <span>24</span>
+                <span>{metrics.machinery.total}</span>
                 <span className="text-xs font-semibold text-emerald-400">
-                  {language === "ar" ? "19 قيد التشغيل" : "19 en service"}
+                  {metrics.machinery.available} dispos
                 </span>
               </div>
               <p className="text-[11px] text-slate-400">
-                {language === "ar" ? "5 آليات متوفرة بالمستودع" : "5 engins disponibles au dépôt"}
+                {metrics.machinery.onSite} sur chantiers • {metrics.machinery.maintenance} atelier
               </p>
             </div>
             <div className="p-3 rounded-xl bg-emerald-500/15 border border-emerald-500/30 text-emerald-400 group-hover:scale-110 transition-transform">
@@ -220,9 +238,9 @@ export function SimpleDashboard({
                 {language === "ar" ? "صفحات الموقع" : "Pages du Site"}
               </span>
               <div className="text-2xl font-black text-white tracking-tight flex items-baseline gap-2">
-                <span>7</span>
+                <span>{metrics.pages.total}</span>
                 <span className="text-xs font-semibold text-emerald-400">
-                  {language === "ar" ? "منشورة 100%" : "En ligne"}
+                  En ligne
                 </span>
               </div>
               <p className="text-[11px] text-slate-400">
@@ -251,7 +269,7 @@ export function SimpleDashboard({
           <Button
             size="sm"
             onClick={onNewProjectClick}
-            className="bg-sky-600 hover:bg-sky-500 text-white font-semibold text-xs flex items-center gap-1.5 shadow-sm"
+            className="bg-sky-600 hover:bg-sky-500 text-white font-semibold text-xs flex items-center gap-1.5 shadow-sm cursor-pointer"
           >
             <Plus className="h-3.5 w-3.5" />
             <span>{t("act_new_project")}</span>
@@ -260,7 +278,7 @@ export function SimpleDashboard({
           <Button
             size="sm"
             onClick={onNewMachineClick}
-            className="bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-xs flex items-center gap-1.5 shadow-sm"
+            className="bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-xs flex items-center gap-1.5 shadow-sm cursor-pointer"
           >
             <Plus className="h-3.5 w-3.5" />
             <span>{t("act_new_machine")}</span>
@@ -270,7 +288,7 @@ export function SimpleDashboard({
             size="sm"
             variant="outline"
             onClick={() => onNavigate("quotes")}
-            className="text-xs border-slate-700 text-slate-200 hover:bg-slate-800 flex items-center gap-1.5"
+            className="text-xs border-slate-700 text-slate-200 hover:bg-slate-800 flex items-center gap-1.5 cursor-pointer"
           >
             <Calculator className="h-3.5 w-3.5 text-amber-400" />
             <span>{t("act_view_quotes")}</span>
@@ -280,7 +298,7 @@ export function SimpleDashboard({
             size="sm"
             variant="outline"
             onClick={() => onNavigate("settings")}
-            className="text-xs border-slate-700 text-slate-200 hover:bg-slate-800 flex items-center gap-1.5"
+            className="text-xs border-slate-700 text-slate-200 hover:bg-slate-800 flex items-center gap-1.5 cursor-pointer"
           >
             <Building2 className="h-3.5 w-3.5 text-slate-400" />
             <span>{t("act_edit_contact")}</span>
@@ -307,60 +325,66 @@ export function SimpleDashboard({
           </div>
 
           <div className="space-y-2.5">
-            {recentQuotes.map((q) => (
-              <div
-                key={q.id}
-                className="p-3.5 rounded-xl border border-slate-800 bg-slate-900/60 hover:border-slate-700 transition-colors space-y-2"
-              >
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <span className="font-mono text-xs font-bold text-amber-400">
-                      {q.id}
+            {recentQuotes.length > 0 ? (
+              recentQuotes.map((q) => (
+                <div
+                  key={q.id}
+                  className="p-3.5 rounded-xl border border-slate-800 bg-slate-900/60 hover:border-slate-700 transition-colors space-y-2"
+                >
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <span className="font-mono text-xs font-bold text-amber-400">
+                        {q.id}
+                      </span>
+                      <Badge
+                        variant={q.status === "pending" ? "warning" : "default"}
+                        className="text-[10px] py-0 px-2"
+                      >
+                        {q.status === "pending" ? "Nouveau" : q.status === "reviewed" ? "En étude" : "Contacté"}
+                      </Badge>
+                    </div>
+                    <span className="text-[11px] text-slate-400 flex items-center gap-1">
+                      <Clock className="h-3 w-3" />
+                      {q.date}
                     </span>
-                    <Badge
-                      variant={q.status === "pending" ? "warning" : "default"}
-                      className="text-[10px] py-0 px-2"
-                    >
-                      {q.status === "pending" ? "Nouveau" : "En cours"}
-                    </Badge>
                   </div>
-                  <span className="text-[11px] text-slate-400 flex items-center gap-1">
-                    <Clock className="h-3 w-3" />
-                    {q.date}
-                  </span>
-                </div>
 
-                <div>
-                  <div className="text-sm font-bold text-slate-100">{q.client}</div>
-                  <p className="text-xs text-slate-300 line-clamp-1">{q.project}</p>
-                </div>
+                  <div>
+                    <div className="text-sm font-bold text-slate-100">{q.client}</div>
+                    <p className="text-xs text-slate-300 line-clamp-1">{q.project}</p>
+                  </div>
 
-                <div className="flex items-center justify-between pt-1 border-t border-slate-800/80 text-xs">
-                  <span className="font-mono font-bold text-amber-400 text-sm">
-                    {q.amount}
-                  </span>
+                  <div className="flex items-center justify-between pt-1 border-t border-slate-800/80 text-xs">
+                    <span className="font-mono font-bold text-amber-400 text-sm">
+                      {q.amount}
+                    </span>
 
-                  <div className="flex items-center gap-2">
-                    <a
-                      href={`https://wa.me/${q.whatsapp}?text=Bonjour%20${encodeURIComponent(q.client)},%20suite%20%C3%A0%20votre%20demande%20de%20devis%20Slassi%20Travaux`}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="inline-flex items-center gap-1 px-2.5 py-1 rounded bg-emerald-600 hover:bg-emerald-500 text-white text-[11px] font-semibold transition-colors"
-                    >
-                      <MessageCircle className="h-3 w-3" />
-                      <span>{t("btn_whatsapp")}</span>
-                    </a>
-                    <a
-                      href={`tel:${q.phone}`}
-                      className="inline-flex items-center gap-1 px-2.5 py-1 rounded bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 text-[11px] font-medium transition-colors"
-                    >
-                      <Phone className="h-3 w-3 text-sky-400" />
-                      <span>{t("btn_call")}</span>
-                    </a>
+                    <div className="flex items-center gap-2">
+                      <a
+                        href={`https://wa.me/${q.whatsapp}?text=Bonjour%20${encodeURIComponent(q.client)},%20suite%20%C3%A0%20votre%20demande%20de%20devis%20Slassi%20Travaux`}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="inline-flex items-center gap-1 px-2.5 py-1 rounded bg-emerald-600 hover:bg-emerald-500 text-white text-[11px] font-semibold transition-colors"
+                      >
+                        <MessageCircle className="h-3 w-3" />
+                        <span>{t("btn_whatsapp")}</span>
+                      </a>
+                      <a
+                        href={`tel:${q.phone}`}
+                        className="inline-flex items-center gap-1 px-2.5 py-1 rounded bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 text-[11px] font-medium transition-colors"
+                      >
+                        <Phone className="h-3 w-3 text-sky-400" />
+                        <span>{t("btn_call")}</span>
+                      </a>
+                    </div>
                   </div>
                 </div>
+              ))
+            ) : (
+              <div className="p-6 text-center text-xs text-slate-400 border border-slate-800 rounded-xl">
+                Aucune demande récente.
               </div>
-            ))}
+            )}
           </div>
         </div>
 
@@ -381,7 +405,7 @@ export function SimpleDashboard({
           </div>
 
           <div className="space-y-2.5">
-            {INITIAL_PROJECTS.slice(0, 3).map((proj) => (
+            {(ongoingProjects.length > 0 ? ongoingProjects : INITIAL_PROJECTS.slice(0, 3)).map((proj) => (
               <div
                 key={proj.id}
                 className="p-3.5 rounded-xl border border-slate-800 bg-slate-900/60 hover:border-slate-700 transition-colors space-y-2"

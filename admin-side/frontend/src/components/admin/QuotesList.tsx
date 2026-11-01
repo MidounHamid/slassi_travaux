@@ -1,33 +1,20 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   Calculator,
   MapPin,
   Phone,
   MessageCircle,
   Clock,
-  CheckCircle2,
   Search,
-  Filter,
+  RefreshCw,
 } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { useLanguage } from "@/context/LanguageContext";
+import { api, ApiQuote } from "@/lib/api";
 
-interface QuoteItem {
-  id: string;
-  client: string;
-  project: string;
-  location: string;
-  amount: string;
-  date: string;
-  status: "pending" | "reviewed" | "contacted";
-  phone: string;
-  whatsapp: string;
-}
-
-const INITIAL_QUOTES: QuoteItem[] = [
+const INITIAL_FALLBACK_QUOTES: ApiQuote[] = [
   {
     id: "DEV-2026-089",
     client: "Société Immobilière Saïss",
@@ -50,51 +37,50 @@ const INITIAL_QUOTES: QuoteItem[] = [
     phone: "+212 6 62 98 76 54",
     whatsapp: "212662987654",
   },
-  {
-    id: "DEV-2026-087",
-    client: "Promoteur Privé M. Berrada",
-    project: "Gros Œuvre & Fondations Immeuble R+5",
-    location: "Quartier Champs de Course, Fès",
-    amount: "1 250 000 MAD",
-    date: "14 Oct 2026",
-    status: "contacted",
-    phone: "+212 6 63 45 67 89",
-    whatsapp: "212663456789",
-  },
-  {
-    id: "DEV-2026-086",
-    client: "Coopérative Agricole Saïss",
-    project: "Nivellement et Accès Piste Rurale 2.8 km",
-    location: "Ain Cheggag, Région Fès",
-    amount: "195 000 MAD",
-    date: "12 Oct 2026",
-    status: "pending",
-    phone: "+212 6 64 11 22 33",
-    whatsapp: "212664112233",
-  },
-  {
-    id: "DEV-2026-085",
-    client: "Particulier M. Alami",
-    project: "Terrassement de Villa & Fouilles en Rigoles",
-    location: "Route de Sefrou, Fès",
-    amount: "78 000 MAD",
-    date: "10 Oct 2026",
-    status: "contacted",
-    phone: "+212 6 65 77 88 99",
-    whatsapp: "212665778899",
-  },
 ];
 
 export function QuotesList() {
   const { t, language } = useLanguage();
-  const [quotes, setQuotes] = useState<QuoteItem[]>(INITIAL_QUOTES);
+  const [quotes, setQuotes] = useState<ApiQuote[]>(INITIAL_FALLBACK_QUOTES);
+  const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<string>("all");
   const [search, setSearch] = useState("");
 
-  const handleStatusChange = (id: string, newStatus: QuoteItem["status"]) => {
+  const fetchQuotes = async () => {
+    try {
+      setLoading(true);
+      const res = await api.getQuotes({
+        status: filter,
+        search: search.trim() || undefined,
+      });
+      if (res && res.data && res.data.length > 0) {
+        setQuotes(res.data);
+      }
+    } catch (err) {
+      console.warn("Failed fetching quotes from API:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchQuotes();
+  }, [filter]);
+
+  const handleStatusChange = async (id: string, newStatus: ApiQuote["status"]) => {
+    // Optimistic UI update
     setQuotes(
       quotes.map((q) => (q.id === id ? { ...q, status: newStatus } : q))
     );
+
+    const quoteItem = quotes.find((q) => q.id === id);
+    const targetId = quoteItem?.db_id || id;
+
+    try {
+      await api.updateQuoteStatus(targetId, newStatus);
+    } catch (err) {
+      console.warn("Failed updating quote status:", err);
+    }
   };
 
   const filtered = quotes.filter((q) => {
@@ -115,7 +101,7 @@ export function QuotesList() {
         <div>
           <div className="inline-flex items-center gap-2 px-2.5 py-0.5 rounded-full bg-purple-500/15 border border-purple-500/30 text-purple-400 text-xs font-semibold mb-1.5">
             <Calculator className="h-3.5 w-3.5" />
-            <span>12 Estimations Clients Reçues</span>
+            <span>{quotes.length} Demandes Enregistrées (MySQL)</span>
           </div>
           <h1 className="text-xl font-bold text-white tracking-tight">
             Demandes de Devis (Simulateur en Ligne)
@@ -124,6 +110,16 @@ export function QuotesList() {
             Répondez directement aux clients par WhatsApp ou appel téléphonique pour valider leurs projets BTP.
           </p>
         </div>
+
+        <Button
+          size="sm"
+          variant="outline"
+          onClick={fetchQuotes}
+          className="text-xs border-slate-700 text-slate-300 hover:text-white hover:bg-slate-800 self-start sm:self-auto cursor-pointer"
+        >
+          <RefreshCw className={`h-3.5 w-3.5 mr-1 ${loading ? "animate-spin text-purple-400" : ""}`} />
+          <span>Actualiser</span>
+        </Button>
       </div>
 
       {/* Filter and Search Bar */}
@@ -178,7 +174,7 @@ export function QuotesList() {
                 <select
                   value={q.status}
                   onChange={(e) =>
-                    handleStatusChange(q.id, e.target.value as QuoteItem["status"])
+                    handleStatusChange(q.id, e.target.value as ApiQuote["status"])
                   }
                   className={`text-[11px] font-semibold px-2 py-0.5 rounded-md border focus:outline-none cursor-pointer ${
                     q.status === "pending"
@@ -205,8 +201,16 @@ export function QuotesList() {
                 </span>
               </div>
 
-              <div className="font-bold text-slate-100 text-sm">{q.client}</div>
+              <div className="font-bold text-slate-100 text-sm">
+                {q.client} {q.company && <span className="text-xs text-slate-400 font-normal">({q.company})</span>}
+              </div>
               <div className="text-slate-300 font-medium">{q.project}</div>
+
+              {q.message && (
+                <div className="text-[11px] text-slate-400 bg-slate-800/40 p-2 rounded border border-slate-800 mt-1">
+                  {q.message}
+                </div>
+              )}
 
               <div className="flex flex-wrap items-center gap-3 text-[11px] text-slate-400 pt-0.5">
                 <span className="flex items-center gap-1 text-slate-300">
@@ -218,6 +222,12 @@ export function QuotesList() {
                   <Phone className="h-3.5 w-3.5 text-emerald-400" />
                   <span>{q.phone}</span>
                 </span>
+                {q.email && (
+                  <>
+                    <span>•</span>
+                    <span className="text-slate-300">{q.email}</span>
+                  </>
+                )}
               </div>
             </div>
 

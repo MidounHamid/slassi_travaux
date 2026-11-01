@@ -1,6 +1,5 @@
 "use client";
-
-import React, { useState } from "react";
+import React, { useState, useEffect } from 'react';
 import { TopHeader } from "@/components/admin/TopHeader";
 import { Sidebar } from "@/components/admin/Sidebar";
 import { SimpleDashboard } from "@/components/admin/SimpleDashboard";
@@ -18,6 +17,7 @@ import { INITIAL_PAGES } from "@/data/initialData";
 import { PageNode, LayoutType } from "@/types/pagetree";
 import { CheckCircle2 } from "lucide-react";
 import { useLanguage } from "@/context/LanguageContext";
+import { api } from "@/lib/api";
 
 export default function AdminPage() {
   const { t, language } = useLanguage();
@@ -28,6 +28,21 @@ export default function AdminPage() {
   const [editingPage, setEditingPage] = useState<PageNode | null>(null);
   const [isNewPageOpen, setIsNewPageOpen] = useState(false);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
+
+  // Fetch pages from API on mount
+  useEffect(() => {
+    async function loadPages() {
+      try {
+        const data = await api.getPages();
+        if (data && data.length > 0) {
+          setPages(data);
+        }
+      } catch (err) {
+        console.warn("Could not load pages from API, using defaults:", err);
+      }
+    }
+    loadPages();
+  }, []);
 
   const showToast = (msg: string) => {
     setToastMessage(msg);
@@ -76,13 +91,20 @@ export default function AdminPage() {
       }
 
       updated[targetPageIndex] = currentPage;
+
+      // Sync to API
+      api.updatePage(pageId, {
+        [field]: value,
+        actualLayout: currentPage.actualLayout,
+      }).catch(err => console.warn("Failed syncing page layout to API:", err));
+
       return updated;
     });
 
     showToast(`Modèle de page mis à jour avec succès.`);
   };
 
-  const handleAddPage = (newPageData: Partial<PageNode>) => {
+  const handleAddPage = async (newPageData: Partial<PageNode>) => {
     const newPage: PageNode = {
       id: `page-${Date.now()}`,
       title: newPageData.title || "Nouvelle Page",
@@ -100,14 +122,25 @@ export default function AdminPage() {
       parentId: "page-1",
     };
 
-    setPages((prev) => [...prev, newPage]);
+    try {
+      const created = await api.createPage(newPage);
+      setPages((prev) => [...prev, created]);
+    } catch (err) {
+      console.warn("Failed creating page on API, saving locally:", err);
+      setPages((prev) => [...prev, newPage]);
+    }
     showToast(`Page "${newPage.title}" ajoutée avec succès.`);
   };
 
-  const handleSavePage = (updatedPage: PageNode) => {
+  const handleSavePage = async (updatedPage: PageNode) => {
     setPages((prev) =>
       prev.map((p) => (p.id === updatedPage.id ? updatedPage : p))
     );
+    try {
+      await api.updatePage(updatedPage.id, updatedPage);
+    } catch (err) {
+      console.warn("Failed saving page to API:", err);
+    }
     showToast(`Propriétés de la page "${updatedPage.title}" enregistrées.`);
   };
 

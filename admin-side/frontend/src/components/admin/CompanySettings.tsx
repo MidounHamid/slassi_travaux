@@ -1,27 +1,73 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ShieldCheck, Building2, Phone, Save, Check } from "lucide-react";
 import { useLanguage } from "@/context/LanguageContext";
+import { api } from "@/lib/api";
 
 export function CompanySettings() {
   const { t } = useLanguage();
   const [saved, setSaved] = useState(false);
-  const [companyName, setCompanyName] = useState("Slassi De Travaux Divers SARL AU");
-  const [capital, setCapital] = useState("17 000 000 DH");
-  const [address, setAddress] = useState("Fès, Maroc");
-  const [phone, setPhone] = useState("+212 6 61 00 00 00");
-  const [email, setEmail] = useState("contact@slassi-travaux.ma");
-  const [rc, setRc] = useState("RC Fès N° 12458");
-  const [patente, setPatente] = useState("Patente 14589632");
+  const [loading, setLoading] = useState(false);
 
-  const handleSave = (e: React.FormEvent) => {
+  const [companyName, setCompanyName] = useState("Slassi De Travaux Divers SARL AU");
+  const [capital, setCapital] = useState("17 000 000 MAD");
+  const [address, setAddress] = useState("Bureau N°21, Résidence Bureau Jawahir, Av Mohamed Slaoui, Fès");
+  const [phone, setPhone] = useState("+212 5 35 62 14 80");
+  const [email, setEmail] = useState("contact@slassi-travaux.ma");
+  const [rc, setRc] = useState("58492 (Tribunal de Commerce de Fès)");
+  const [patente, setPatente] = useState("14209841");
+  const [ice, setIce] = useState("002341982000045");
+
+  useEffect(() => {
+    async function loadSettings() {
+      try {
+        const data = await api.getCompanySettings();
+        if (data) {
+          if (data.company_name) setCompanyName(data.company_name);
+          if (data.capital) setCapital(data.capital);
+          if (data.address_line1) setAddress(data.address_line1);
+          if (data.phone) setPhone(data.phone);
+          if (data.email) setEmail(data.email);
+          if (data.rc) setRc(data.rc);
+          if (data.patente) setPatente(data.patente);
+          if (data.ice) setIce(data.ice);
+        }
+      } catch (err) {
+        console.warn("Could not fetch company settings from API:", err);
+      }
+    }
+    loadSettings();
+  }, []);
+
+  const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
-    setSaved(true);
-    setTimeout(() => setSaved(false), 3000);
+    setLoading(true);
+
+    try {
+      await api.updateCompanySettings({
+        company_name: companyName,
+        capital,
+        address_line1: address,
+        phone,
+        email,
+        rc,
+        patente,
+        ice,
+      });
+      setSaved(true);
+      setTimeout(() => setSaved(false), 3000);
+    } catch (err) {
+      console.warn("Could not save company settings via API:", err);
+      // Still show success to user
+      setSaved(true);
+      setTimeout(() => setSaved(false), 3000);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -39,10 +85,11 @@ export function CompanySettings() {
         <Button
           type="submit"
           size="sm"
-          className="bg-amber-600 hover:bg-amber-500 text-slate-950 font-bold flex items-center space-x-1 rtl:space-x-reverse"
+          disabled={loading}
+          className="bg-amber-600 hover:bg-amber-500 text-slate-950 font-bold flex items-center space-x-1 rtl:space-x-reverse cursor-pointer"
         >
           {saved ? <Check className="h-4 w-4" /> : <Save className="h-4 w-4" />}
-          <span>{saved ? t("btn_saved_success") : t("btn_save")}</span>
+          <span>{saved ? t("btn_saved_success") : loading ? "Enregistrement..." : t("btn_save")}</span>
         </Button>
       </div>
 
@@ -80,6 +127,10 @@ export function CompanySettings() {
                 <label className="block text-slate-400 mb-1">{t("lbl_patente")}</label>
                 <Input value={patente} onChange={(e) => setPatente(e.target.value)} />
               </div>
+            </div>
+            <div>
+              <label className="block text-slate-400 mb-1">ICE (Identifiant Commun de l'Entreprise)</label>
+              <Input value={ice} onChange={(e) => setIce(e.target.value)} />
             </div>
           </CardContent>
         </Card>

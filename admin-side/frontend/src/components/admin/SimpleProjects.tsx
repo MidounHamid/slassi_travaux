@@ -1,24 +1,21 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   HardHat,
   Plus,
   MapPin,
-  Building2,
-  Calendar,
-  CheckCircle2,
   Trash2,
-  Edit2,
-  Check,
   X,
   Search,
+  RefreshCw,
 } from "lucide-react";
-import { AdminProject, INITIAL_PROJECTS } from "@/data/initialData";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useLanguage } from "@/context/LanguageContext";
+import { api, ApiProject } from "@/lib/api";
+import { INITIAL_PROJECTS } from "@/data/initialData";
 
 interface SimpleProjectsProps {
   onNewProjectModalOpen?: () => void;
@@ -26,18 +23,120 @@ interface SimpleProjectsProps {
 
 export function SimpleProjects({ onNewProjectModalOpen }: SimpleProjectsProps) {
   const { language } = useLanguage();
-  const [projects, setProjects] = useState<AdminProject[]>(INITIAL_PROJECTS);
+  const [projects, setProjects] = useState<ApiProject[]>(INITIAL_PROJECTS);
+  const [loading, setLoading] = useState(true);
   const [filterCategory, setFilterCategory] = useState<string>("all");
   const [search, setSearch] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   // New Project Form State
   const [newTitle, setNewTitle] = useState("");
-  const [newCategory, setNewCategory] = useState<AdminProject["category"]>("Gros Œuvre");
+  const [newCategory, setNewCategory] = useState<ApiProject["category"]>("Gros Œuvre");
   const [newClient, setNewClient] = useState("");
   const [newLocation, setNewLocation] = useState("Fès - Maroc");
   const [newBudget, setNewBudget] = useState("");
   const [newProgress, setNewProgress] = useState(50);
+
+  const fetchProjects = async () => {
+    try {
+      setLoading(true);
+      const data = await api.getProjects({
+        category: filterCategory,
+        search: search.trim() || undefined,
+      });
+      if (data && data.length > 0) {
+        setProjects(data);
+      }
+    } catch (err) {
+      console.warn("Failed fetching projects from API, keeping state:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchProjects();
+  }, [filterCategory]);
+
+  const handleAddProject = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newTitle.trim()) return;
+
+    setIsSubmitting(true);
+    const newProjData: Partial<ApiProject> = {
+      title: newTitle.trim(),
+      category: newCategory,
+      client: newClient.trim() || "Client Privé",
+      location: newLocation.trim() || "Fès - Maroc",
+      budget: newBudget.trim() ? `${newBudget.trim()} MAD` : "Non spécifié",
+      status: newProgress >= 100 ? "done" : "ongoing",
+      progress: Number(newProgress),
+      date: "2026",
+    };
+
+    try {
+      const created = await api.createProject(newProjData);
+      setProjects([created, ...projects]);
+    } catch (err) {
+      console.warn("API creation failed, adding locally:", err);
+      const localProj: ApiProject = {
+        id: `proj-${Date.now()}`,
+        title: newProjData.title!,
+        category: newProjData.category!,
+        client: newProjData.client!,
+        location: newProjData.location!,
+        budget: newProjData.budget!,
+        status: newProjData.status!,
+        progress: newProjData.progress!,
+        date: "2026",
+      };
+      setProjects([localProj, ...projects]);
+    } finally {
+      setIsSubmitting(false);
+      setIsModalOpen(false);
+      // Reset form
+      setNewTitle("");
+      setNewClient("");
+      setNewBudget("");
+      setNewProgress(50);
+    }
+  };
+
+  const handleDelete = async (id: string | number) => {
+    if (!confirm("Voulez-vous vraiment supprimer ce chantier ?")) return;
+
+    try {
+      await api.deleteProject(id);
+    } catch (err) {
+      console.warn("API delete failed, removing locally:", err);
+    }
+    setProjects(projects.filter((p) => p.id !== id));
+  };
+
+  const handleToggleStatus = async (id: string | number) => {
+    const target = projects.find((p) => p.id === id);
+    if (!target) return;
+
+    const nextStatus = target.status === "done" ? "ongoing" : "done";
+    const nextProgress = nextStatus === "done" ? 100 : Math.min(target.progress, 90);
+
+    // Optimistic UI update
+    setProjects(
+      projects.map((p) =>
+        p.id === id ? { ...p, status: nextStatus, progress: nextProgress } : p
+      )
+    );
+
+    try {
+      await api.updateProject(id, {
+        status: nextStatus,
+        progress: nextProgress,
+      });
+    } catch (err) {
+      console.warn("API status update failed:", err);
+    }
+  };
 
   const filtered = projects.filter((p) => {
     const matchesCat = filterCategory === "all" || p.category === filterCategory;
@@ -49,51 +148,6 @@ export function SimpleProjects({ onNewProjectModalOpen }: SimpleProjectsProps) {
     return matchesCat && matchesSearch;
   });
 
-  const handleAddProject = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!newTitle.trim()) return;
-
-    const newProj: AdminProject = {
-      id: `proj-${Date.now()}`,
-      title: newTitle.trim(),
-      category: newCategory,
-      client: newClient.trim() || "Client Privé",
-      location: newLocation.trim() || "Fès",
-      budget: newBudget.trim() ? `${newBudget.trim()} MAD` : "Non spécifié",
-      status: newProgress >= 100 ? "done" : "ongoing",
-      progress: Number(newProgress),
-      date: "2026",
-    };
-
-    setProjects([newProj, ...projects]);
-    setIsModalOpen(false);
-    // Reset form
-    setNewTitle("");
-    setNewClient("");
-    setNewBudget("");
-    setNewProgress(50);
-  };
-
-  const handleDelete = (id: string) => {
-    setProjects(projects.filter((p) => p.id !== id));
-  };
-
-  const handleToggleStatus = (id: string) => {
-    setProjects(
-      projects.map((p) => {
-        if (p.id === id) {
-          const nextStatus = p.status === "done" ? "ongoing" : "done";
-          return {
-            ...p,
-            status: nextStatus,
-            progress: nextStatus === "done" ? 100 : Math.min(p.progress, 90),
-          };
-        }
-        return p;
-      })
-    );
-  };
-
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -101,23 +155,35 @@ export function SimpleProjects({ onNewProjectModalOpen }: SimpleProjectsProps) {
         <div>
           <div className="inline-flex items-center gap-2 px-2.5 py-0.5 rounded-full bg-sky-500/15 border border-sky-500/30 text-sky-400 text-xs font-semibold mb-1.5">
             <HardHat className="h-3.5 w-3.5" />
-            <span>{projects.length} Chantiers Référencés</span>
+            <span>{projects.length} Chantiers Référencés (MySQL)</span>
           </div>
           <h1 className="text-xl font-bold text-white tracking-tight">
             Chantiers & Projets Slassi Travaux
           </h1>
           <p className="text-xs text-slate-400">
-            Gérez simplement la liste des chantiers (Terrassement, VRD, Bâtiment) affichés sur le site internet.
+            Gérez simplement la liste des chantiers (Terrassement, VRD, Bâtiment) synchronisés avec la base de données.
           </p>
         </div>
 
-        <Button
-          onClick={() => setIsModalOpen(true)}
-          className="bg-sky-600 hover:bg-sky-500 text-white font-semibold text-xs flex items-center gap-1.5 shadow-md self-start sm:self-auto"
-        >
-          <Plus className="h-4 w-4" />
-          <span>Nouveau Chantier</span>
-        </Button>
+        <div className="flex items-center gap-2 self-start sm:self-auto">
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={fetchProjects}
+            className="text-xs border-slate-700 text-slate-300 hover:text-white hover:bg-slate-800"
+          >
+            <RefreshCw className={`h-3.5 w-3.5 mr-1 ${loading ? "animate-spin text-sky-400" : ""}`} />
+            <span>Actualiser</span>
+          </Button>
+
+          <Button
+            onClick={() => setIsModalOpen(true)}
+            className="bg-sky-600 hover:bg-sky-500 text-white font-semibold text-xs flex items-center gap-1.5 shadow-md cursor-pointer"
+          >
+            <Plus className="h-4 w-4" />
+            <span>Nouveau Chantier</span>
+          </Button>
+        </div>
       </div>
 
       {/* Filter and Search Bar */}
@@ -167,9 +233,9 @@ export function SimpleProjects({ onNewProjectModalOpen }: SimpleProjectsProps) {
               <div className="flex items-center justify-between gap-2">
                 <Badge
                   variant={
-                    proj.category === "Gros Œuvre"
+                    proj.category === "Gros Œuvre" || proj.category === "building"
                       ? "amber"
-                      : proj.category === "Terrassement"
+                      : proj.category === "Terrassement" || proj.category === "civil"
                       ? "default"
                       : "secondary"
                   }
@@ -234,13 +300,13 @@ export function SimpleProjects({ onNewProjectModalOpen }: SimpleProjectsProps) {
                   size="xs"
                   variant="outline"
                   onClick={() => handleToggleStatus(proj.id)}
-                  className="text-[11px] text-slate-300 hover:text-white"
+                  className="text-[11px] text-slate-300 hover:text-white cursor-pointer"
                 >
                   {proj.status === "done" ? "Marquer en cours" : "Marquer terminé"}
                 </Button>
                 <button
                   onClick={() => handleDelete(proj.id)}
-                  title="Supprimer ce chantier"
+                  title="Supprimer ce chantier de la base de données"
                   className="p-1 rounded text-slate-500 hover:text-red-400 hover:bg-red-500/10 transition-colors cursor-pointer"
                 >
                   <Trash2 className="h-3.5 w-3.5" />
@@ -268,7 +334,7 @@ export function SimpleProjects({ onNewProjectModalOpen }: SimpleProjectsProps) {
               </h2>
               <button
                 onClick={() => setIsModalOpen(false)}
-                className="p-1 rounded text-slate-400 hover:text-white hover:bg-slate-800"
+                className="p-1 rounded text-slate-400 hover:text-white hover:bg-slate-800 cursor-pointer"
               >
                 <X className="h-4 w-4" />
               </button>
@@ -295,7 +361,7 @@ export function SimpleProjects({ onNewProjectModalOpen }: SimpleProjectsProps) {
                   <select
                     value={newCategory}
                     onChange={(e) =>
-                      setNewCategory(e.target.value as AdminProject["category"])
+                      setNewCategory(e.target.value as ApiProject["category"])
                     }
                     className="w-full h-8 px-2 rounded-md bg-slate-800 border border-slate-700 text-slate-200 text-xs focus:outline-none"
                   >
@@ -366,9 +432,10 @@ export function SimpleProjects({ onNewProjectModalOpen }: SimpleProjectsProps) {
                 <Button
                   type="submit"
                   size="sm"
-                  className="bg-sky-600 hover:bg-sky-500 text-white font-bold"
+                  disabled={isSubmitting}
+                  className="bg-sky-600 hover:bg-sky-500 text-white font-bold cursor-pointer"
                 >
-                  Enregistrer le Chantier
+                  {isSubmitting ? "Enregistrement SQL..." : "Enregistrer le Chantier"}
                 </Button>
               </div>
             </form>
