@@ -269,34 +269,102 @@ export function LoginForm({ onLoginSuccess }: LoginFormProps) {
             </button>
           </form>
 
-          {/* Quick Demo Credentials Autofill Pill */}
+          {/* Interactive Multi-Role Demo Switcher */}
           <div className="mt-6 pt-5 border-t border-slate-800/80">
-            <div className="flex items-center justify-between text-xs text-slate-400 mb-2">
-              <span className="font-medium flex items-center space-x-1 rtl:space-x-reverse">
-                <Sparkles className="h-3.5 w-3.5 text-amber-400" />
+            <div className="flex items-center justify-between text-xs text-slate-400 mb-2.5">
+              <span className="font-semibold flex items-center space-x-1.5 rtl:space-x-reverse text-amber-400">
+                <Sparkles className="h-3.5 w-3.5" />
                 <span>
-                  {language === "ar" ? "حساب تجريبي سريع" : "Compte Démo Administrateur"}
+                  {language === "ar" ? "اختر دوراً لتجربة الصلاحيات" : "Tester les Rôles & Permissions"}
                 </span>
               </span>
+              <span className="text-[10px] text-slate-500">1-Clic</span>
+            </div>
+
+            <div className="grid grid-cols-2 gap-2">
+              {/* 1. Super Admin */}
               <button
                 type="button"
-                onClick={handleFillDemo}
-                className="text-[11px] font-bold text-amber-400 hover:text-amber-300 underline underline-offset-2 cursor-pointer transition-colors"
+                onClick={() => {
+                  setEmail("admin@slassi-travaux.ma");
+                  setPassword("admin123");
+                  setError(null);
+                }}
+                className={`p-2 rounded-xl text-left rtl:text-right border transition-all cursor-pointer ${
+                  email === "admin@slassi-travaux.ma"
+                    ? "bg-amber-500/20 border-amber-500 text-amber-300 shadow-xs"
+                    : "bg-slate-950/60 border-slate-800 hover:border-slate-700 text-slate-300"
+                }`}
               >
-                {language === "ar" ? "تعبئة تلقائية" : "Remplir en 1-clic"}
+                <div className="flex items-center space-x-1.5 rtl:space-x-reverse font-bold text-[11px]">
+                  <span>👑</span>
+                  <span className="truncate">Super Admin</span>
+                </div>
+                <div className="text-[10px] text-slate-500 truncate mt-0.5">Direction Générale</div>
               </button>
-            </div>
-            <div
-              onClick={handleFillDemo}
-              className="group p-2.5 rounded-xl bg-slate-950/60 border border-slate-800 hover:border-amber-500/40 cursor-pointer transition-all flex items-center justify-between text-[11px]"
-            >
-              <div className="space-y-0.5 text-left rtl:text-right">
-                <div className="text-slate-300 font-mono">admin@slassi-travaux.ma</div>
-                <div className="text-slate-500 font-mono">Mot de passe: admin123</div>
-              </div>
-              <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-amber-500/10 text-amber-400 border border-amber-500/20 group-hover:bg-amber-500 group-hover:text-slate-950 transition-colors">
-                {language === "ar" ? "استخدام" : "Utiliser"}
-              </span>
+
+              {/* 2. Chef de Projet */}
+              <button
+                type="button"
+                onClick={() => {
+                  setEmail("chef.projet@slassi-travaux.ma");
+                  setPassword("projet123");
+                  setError(null);
+                }}
+                className={`p-2 rounded-xl text-left rtl:text-right border transition-all cursor-pointer ${
+                  email === "chef.projet@slassi-travaux.ma"
+                    ? "bg-emerald-500/20 border-emerald-500 text-emerald-300 shadow-xs"
+                    : "bg-slate-950/60 border-slate-800 hover:border-slate-700 text-slate-300"
+                }`}
+              >
+                <div className="flex items-center space-x-1.5 rtl:space-x-reverse font-bold text-[11px]">
+                  <span>🏗️</span>
+                  <span className="truncate">Chef de Projet</span>
+                </div>
+                <div className="text-[10px] text-slate-500 truncate mt-0.5">Chantiers & Travaux</div>
+              </button>
+
+              {/* 3. Responsable Matériel */}
+              <button
+                type="button"
+                onClick={() => {
+                  setEmail("parc@slassi-travaux.ma");
+                  setPassword("parc123");
+                  setError(null);
+                }}
+                className={`p-2 rounded-xl text-left rtl:text-right border transition-all cursor-pointer ${
+                  email === "parc@slassi-travaux.ma"
+                    ? "bg-blue-500/20 border-blue-500 text-blue-300 shadow-xs"
+                    : "bg-slate-950/60 border-slate-800 hover:border-slate-700 text-slate-300"
+                }`}
+              >
+                <div className="flex items-center space-x-1.5 rtl:space-x-reverse font-bold text-[11px]">
+                  <span>🚜</span>
+                  <span className="truncate">Resp. Parc</span>
+                </div>
+                <div className="text-[10px] text-slate-500 truncate mt-0.5">Engins & Maintenance</div>
+              </button>
+
+              {/* 4. Commercial */}
+              <button
+                type="button"
+                onClick={() => {
+                  setEmail("commercial@slassi-travaux.ma");
+                  setPassword("commercial123");
+                  setError(null);
+                }}
+                className={`p-2 rounded-xl text-left rtl:text-right border transition-all cursor-pointer ${
+                  email === "commercial@slassi-travaux.ma"
+                    ? "bg-purple-500/20 border-purple-500 text-purple-300 shadow-xs"
+                    : "bg-slate-950/60 border-slate-800 hover:border-slate-700 text-slate-300"
+                }`}
+              >
+                <div className="flex items-center space-x-1.5 rtl:space-x-reverse font-bold text-[11px]">
+                  <span>💼</span>
+                  <span className="truncate">Commercial</span>
+                </div>
+                <div className="text-[10px] text-slate-500 truncate mt-0.5">Devis & Estimations</div>
+              </button>
             </div>
           </div>
 

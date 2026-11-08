@@ -68,7 +68,6 @@ export function QuotesList() {
   }, [filter]);
 
   const handleStatusChange = async (id: string, newStatus: ApiQuote["status"]) => {
-    // Optimistic UI update
     setQuotes(
       quotes.map((q) => (q.id === id ? { ...q, status: newStatus } : q))
     );
@@ -94,6 +93,19 @@ export function QuotesList() {
     return matchesFilter && matchesSearch;
   });
 
+  const getStatusLabel = (status: string) => {
+    if (status === "pending") return `⏳ ${t("quotes_status_pending")}`;
+    if (status === "reviewed") return `🔍 ${t("quotes_status_reviewed")}`;
+    return `✓ ${t("quotes_status_contacted")}`;
+  };
+
+  const filterTabs = [
+    { id: "all", label: t("quotes_filter_all") },
+    { id: "pending", label: t("quotes_filter_pending") },
+    { id: "reviewed", label: t("quotes_filter_reviewed") },
+    { id: "contacted", label: t("quotes_filter_contacted") },
+  ];
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -101,13 +113,13 @@ export function QuotesList() {
         <div>
           <div className="inline-flex items-center gap-2 px-2.5 py-0.5 rounded-full bg-purple-500/15 border border-purple-500/30 text-purple-400 text-xs font-semibold mb-1.5">
             <Calculator className="h-3.5 w-3.5" />
-            <span>{quotes.length} Demandes Enregistrées (MySQL)</span>
+            <span>{quotes.length} {t("quotes_badge_suffix")}</span>
           </div>
           <h1 className="text-xl font-bold text-white tracking-tight">
-            Demandes de Devis (Simulateur en Ligne)
+            {t("quotes_title_main")}
           </h1>
           <p className="text-xs text-slate-400">
-            Répondez directement aux clients par WhatsApp ou appel téléphonique pour valider leurs projets BTP.
+            {t("quotes_desc_main")}
           </p>
         </div>
 
@@ -117,20 +129,15 @@ export function QuotesList() {
           onClick={fetchQuotes}
           className="text-xs border-slate-700 text-slate-300 hover:text-white hover:bg-slate-800 self-start sm:self-auto cursor-pointer"
         >
-          <RefreshCw className={`h-3.5 w-3.5 mr-1 ${loading ? "animate-spin text-purple-400" : ""}`} />
-          <span>Actualiser</span>
+          <RefreshCw className={`h-3.5 w-3.5 mr-1 rtl:mr-0 rtl:ml-1 ${loading ? "animate-spin text-purple-400" : ""}`} />
+          <span>{t("quotes_refresh")}</span>
         </Button>
       </div>
 
       {/* Filter and Search Bar */}
       <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 text-xs">
         <div className="flex flex-wrap items-center gap-1.5 bg-slate-900/60 p-1 rounded-lg border border-slate-800">
-          {[
-            { id: "all", label: "Toutes les demandes" },
-            { id: "pending", label: "Nouveaux (En attente)" },
-            { id: "reviewed", label: "En étude" },
-            { id: "contacted", label: "Clients contactés" },
-          ].map((f) => (
+          {filterTabs.map((f) => (
             <button
               key={f.id}
               onClick={() => setFilter(f.id)}
@@ -146,13 +153,13 @@ export function QuotesList() {
         </div>
 
         <div className="relative w-full sm:w-64">
-          <Search className="h-3.5 w-3.5 absolute left-3 top-2.5 text-slate-400" />
+          <Search className={`h-3.5 w-3.5 absolute top-2.5 text-slate-400 ${language === "ar" ? "right-3" : "left-3"}`} />
           <input
             type="text"
-            placeholder="Rechercher un client, projet..."
+            placeholder={t("quotes_search_ph")}
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full h-8 pl-9 pr-3 text-xs bg-slate-900/80 border border-slate-700 rounded-lg text-slate-200 placeholder:text-slate-500 focus:outline-none focus:ring-1 focus:ring-purple-500"
+            className={`w-full h-8 text-xs bg-slate-900/80 border border-slate-700 rounded-lg text-slate-200 placeholder:text-slate-500 focus:outline-none focus:ring-1 focus:ring-purple-500 ${language === "ar" ? "pr-9 pl-3 text-right" : "pl-9 pr-3"}`}
           />
         </div>
       </div>
@@ -185,13 +192,13 @@ export function QuotesList() {
                   }`}
                 >
                   <option value="pending" className="bg-slate-900 text-amber-400">
-                    ⏳ Nouveau (En attente)
+                    ⏳ {t("quotes_status_pending")}
                   </option>
                   <option value="reviewed" className="bg-slate-900 text-sky-400">
-                    🔍 En étude technique
+                    🔍 {t("quotes_status_reviewed")}
                   </option>
                   <option value="contacted" className="bg-slate-900 text-emerald-400">
-                    ✓ Client Contacté
+                    ✓ {t("quotes_status_contacted")}
                   </option>
                 </select>
 
@@ -233,9 +240,9 @@ export function QuotesList() {
 
             {/* Price and Actions */}
             <div className="flex flex-row md:flex-col items-center md:items-end justify-between md:justify-center gap-3 shrink-0 border-t md:border-t-0 pt-3 md:pt-0 border-slate-800">
-              <div className="text-left md:text-right">
+              <div className={`${language === "ar" ? "text-right" : "text-left md:text-right"}`}>
                 <span className="text-[10px] text-slate-400 block uppercase tracking-wider">
-                  Montant Estimé
+                  {t("quotes_amount_label")}
                 </span>
                 <span className="text-base font-mono font-black text-amber-400">
                   {q.amount}
@@ -244,13 +251,13 @@ export function QuotesList() {
 
               <div className="flex items-center gap-2">
                 <a
-                  href={`https://wa.me/${q.whatsapp}?text=Bonjour%20${encodeURIComponent(q.client)},%20suite%20%C3%A0%20votre%20demande%20de%20devis%20sur%20slassi-travaux.ma`}
+                  href={`https://wa.me/${q.whatsapp}`}
                   target="_blank"
                   rel="noreferrer"
                   className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-xs transition-colors shadow-sm cursor-pointer"
                 >
                   <MessageCircle className="h-3.5 w-3.5" />
-                  <span>WhatsApp</span>
+                  <span>{t("quotes_whatsapp_btn")}</span>
                 </a>
 
                 <a
@@ -258,7 +265,7 @@ export function QuotesList() {
                   className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 font-medium text-xs transition-colors cursor-pointer"
                 >
                   <Phone className="h-3.5 w-3.5 text-sky-400" />
-                  <span>Appeler</span>
+                  <span>{t("quotes_call_btn")}</span>
                 </a>
               </div>
             </div>
@@ -268,7 +275,7 @@ export function QuotesList() {
 
       {filtered.length === 0 && (
         <div className="p-8 text-center text-xs text-slate-400 border border-dashed border-slate-800 rounded-xl">
-          Aucune demande ne correspond au filtre sélectionné.
+          {t("quotes_no_data")}
         </div>
       )}
     </div>

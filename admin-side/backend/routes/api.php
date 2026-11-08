@@ -6,6 +6,7 @@ use App\Http\Controllers\Api\DashboardController;
 use App\Http\Controllers\Api\MachineryController;
 use App\Http\Controllers\Api\ProjectController;
 use App\Http\Controllers\Api\QuoteController;
+use App\Http\Controllers\Api\RoleController;
 use App\Http\Controllers\Api\SitePageController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -53,6 +54,20 @@ Route::post('/company-settings', [CompanySettingController::class, 'update']);
 
 // Site Pages & CMS Layouts API
 Route::apiResource('pages', SitePageController::class);
+
+// Roles, Permissions & Team Access API
+Route::get('/roles', [RoleController::class, 'index']);
+Route::post('/roles', [RoleController::class, 'storeRole']);
+Route::put('/roles/{id}', [RoleController::class, 'updateRole']);
+Route::delete('/roles/{id}', [RoleController::class, 'destroyRole']);
+
+Route::get('/permissions', [RoleController::class, 'permissions']);
+Route::post('/permissions', [RoleController::class, 'storePermission']);
+Route::put('/permissions/{id}', [RoleController::class, 'updatePermission']);
+Route::delete('/permissions/{id}', [RoleController::class, 'destroyPermission']);
+
+Route::get('/users', [RoleController::class, 'users']);
+Route::put('/users/{id}/role', [RoleController::class, 'updateUserRole']);
 
 Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();

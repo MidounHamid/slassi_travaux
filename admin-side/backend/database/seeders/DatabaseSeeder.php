@@ -3,6 +3,8 @@
 namespace Database\Seeders;
 
 use App\Models\User;
+use App\Models\Role;
+use App\Models\Permission;
 use App\Models\Project;
 use App\Models\ProjectHighlight;
 use App\Models\Machinery;
@@ -19,14 +21,165 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        // 1. Admin User
-        User::firstOrCreate(
-            ['email' => 'admin@slassi-travaux.ma'],
+        // ==========================================
+        // 1. ROLES & PERMISSIONS SYSTEM
+        // ==========================================
+        $permissionsList = [
+            // Projects Module
+            ['name' => 'projects.view', 'label_fr' => 'Consulter les chantiers et projets', 'module' => 'projects'],
+            ['name' => 'projects.create', 'label_fr' => 'Ajouter un nouveau projet BTP', 'module' => 'projects'],
+            ['name' => 'projects.edit', 'label_fr' => 'Modifier un projet et ses avancements', 'module' => 'projects'],
+            ['name' => 'projects.delete', 'label_fr' => 'Supprimer un projet', 'module' => 'projects'],
+
+            // Machinery / Fleet Module
+            ['name' => 'machinery.view', 'label_fr' => 'Consulter la flotte d\'engins lourds', 'module' => 'machinery'],
+            ['name' => 'machinery.create', 'label_fr' => 'Ajouter une machine au parc', 'module' => 'machinery'],
+            ['name' => 'machinery.edit', 'label_fr' => 'Modifier statut chantier & maintenance d\'engin', 'module' => 'machinery'],
+            ['name' => 'machinery.delete', 'label_fr' => 'Retirer un engin du parc', 'module' => 'machinery'],
+
+            // Quotes & Estimates Module
+            ['name' => 'quotes.view', 'label_fr' => 'Consulter les demandes de devis clients', 'module' => 'quotes'],
+            ['name' => 'quotes.edit', 'label_fr' => 'Traiter et actualiser le statut des devis', 'module' => 'quotes'],
+            ['name' => 'quotes.delete', 'label_fr' => 'Supprimer un devis ou contact', 'module' => 'quotes'],
+
+            // Site Pages / CMS Module
+            ['name' => 'pages.view', 'label_fr' => 'Consulter l\'arborescence du site', 'module' => 'pages'],
+            ['name' => 'pages.create', 'label_fr' => 'Créer de nouvelles pages', 'module' => 'pages'],
+            ['name' => 'pages.edit', 'label_fr' => 'Modifier la mise en page et les contenus', 'module' => 'pages'],
+            ['name' => 'pages.delete', 'label_fr' => 'Supprimer des pages du CMS', 'module' => 'pages'],
+
+            // Company Legal & Contact Settings
+            ['name' => 'settings.view', 'label_fr' => 'Consulter les paramètres d\'entreprise', 'module' => 'settings'],
+            ['name' => 'settings.edit', 'label_fr' => 'Modifier le capital, RC, ICE et coordonnées', 'module' => 'settings'],
+
+            // Team & User Management
+            ['name' => 'users.view', 'label_fr' => 'Consulter les membres de l\'équipe et leurs rôles', 'module' => 'users'],
+            ['name' => 'users.manage', 'label_fr' => 'Créer et gérer les accès et rôles utilisateurs', 'module' => 'users'],
+        ];
+
+        $createdPermissions = [];
+        foreach ($permissionsList as $pData) {
+            $createdPermissions[$pData['name']] = Permission::updateOrCreate(
+                ['name' => $pData['name']],
+                $pData
+            );
+        }
+
+        // Roles definition
+        $rolesData = [
+            'super_admin' => [
+                'name' => 'super_admin',
+                'label_fr' => 'Directeur Général (Super Admin)',
+                'label_ar' => 'المدير العام (مسؤول النظام)',
+                'description' => 'Accès intégral à l\'ensemble des modules, sécurité et gestion juridique.',
+                'permissions' => array_keys($createdPermissions), // All permissions
+            ],
+            'project_manager' => [
+                'name' => 'project_manager',
+                'label_fr' => 'Chef de Projet BTP',
+                'label_ar' => 'مدير مشاريع البناء',
+                'description' => 'Gestion des chantiers, planification des travaux et consultation du parc d\'engins.',
+                'permissions' => [
+                    'projects.view', 'projects.create', 'projects.edit', 'projects.delete',
+                    'machinery.view', 'quotes.view', 'pages.view', 'settings.view',
+                ],
+            ],
+            'fleet_manager' => [
+                'name' => 'fleet_manager',
+                'label_fr' => 'Responsable Matériel & Parc',
+                'label_ar' => 'مسؤول أسطول الآليات والمعدات',
+                'description' => 'Gestion de la flotte d\'engins, affectation sur chantiers et suivi de maintenance.',
+                'permissions' => [
+                    'machinery.view', 'machinery.create', 'machinery.edit', 'machinery.delete',
+                    'projects.view', 'settings.view',
+                ],
+            ],
+            'commercial' => [
+                'name' => 'commercial',
+                'label_fr' => 'Chargé d\'Affaires & Devis',
+                'label_ar' => 'المكلف بالشؤون التجارية والتقديرات',
+                'description' => 'Réception des demandes de devis, contact des maîtres d\'ouvrage et suivi des dossiers.',
+                'permissions' => [
+                    'quotes.view', 'quotes.edit', 'quotes.delete',
+                    'projects.view', 'settings.view',
+                ],
+            ],
+        ];
+
+        $roles = [];
+        foreach ($rolesData as $slug => $rData) {
+            $role = Role::updateOrCreate(
+                ['name' => $rData['name']],
+                [
+                    'label_fr' => $rData['label_fr'],
+                    'label_ar' => $rData['label_ar'],
+                    'description' => $rData['description'],
+                    'is_system' => true,
+                ]
+            );
+
+            // Sync permissions
+            $permissionIds = [];
+            foreach ($rData['permissions'] as $pName) {
+                if (isset($createdPermissions[$pName])) {
+                    $permissionIds[] = $createdPermissions[$pName]->id;
+                }
+            }
+            $role->permissions()->sync($permissionIds);
+            $roles[$slug] = $role;
+        }
+
+        // ==========================================
+        // 2. USERS & ACCOUNTS SEEDING
+        // ==========================================
+        $usersToSeed = [
             [
+                'email' => 'admin@slassi-travaux.ma',
                 'name' => 'Hamid Slassi',
-                'password' => Hash::make('admin123'),
-            ]
-        );
+                'password' => 'admin123',
+                'role_id' => $roles['super_admin']->id,
+                'role' => 'super_admin',
+                'job_title' => 'Directeur Général',
+            ],
+            [
+                'email' => 'chef.projet@slassi-travaux.ma',
+                'name' => 'Youssef El Amrani',
+                'password' => 'projet123',
+                'role_id' => $roles['project_manager']->id,
+                'role' => 'project_manager',
+                'job_title' => 'Conducteur Principal de Travaux',
+            ],
+            [
+                'email' => 'parc@slassi-travaux.ma',
+                'name' => 'Tariq Berrada',
+                'password' => 'parc123',
+                'role_id' => $roles['fleet_manager']->id,
+                'role' => 'fleet_manager',
+                'job_title' => 'Chef de Parc & Maintenance',
+            ],
+            [
+                'email' => 'commercial@slassi-travaux.ma',
+                'name' => 'Fatima-Zahra Mansouri',
+                'password' => 'commercial123',
+                'role_id' => $roles['commercial']->id,
+                'role' => 'commercial',
+                'job_title' => 'Chargée d\'Affaires BTP',
+            ],
+        ];
+
+        foreach ($usersToSeed as $uData) {
+            User::updateOrCreate(
+                ['email' => $uData['email']],
+                [
+                    'name' => $uData['name'],
+                    'password' => Hash::make($uData['password']),
+                    'role_id' => $uData['role_id'],
+                    'role' => $uData['role'],
+                    'job_title' => $uData['job_title'],
+                    'status' => 'active',
+                ]
+            );
+        }
 
         // 2. Company Profile & Settings
         CompanySetting::updateOrCreate(

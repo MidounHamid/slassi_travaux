@@ -104,7 +104,7 @@ export function SimpleProjects({ onNewProjectModalOpen }: SimpleProjectsProps) {
   };
 
   const handleDelete = async (id: string | number) => {
-    if (!confirm("Voulez-vous vraiment supprimer ce chantier ?")) return;
+    if (!confirm(t("proj_delete_confirm"))) return;
 
     try {
       await api.deleteProject(id);
@@ -155,13 +155,13 @@ export function SimpleProjects({ onNewProjectModalOpen }: SimpleProjectsProps) {
         <div>
           <div className="inline-flex items-center gap-2 px-2.5 py-0.5 rounded-full bg-sky-500/15 border border-sky-500/30 text-sky-400 text-xs font-semibold mb-1.5">
             <HardHat className="h-3.5 w-3.5" />
-            <span>{projects.length} Chantiers Référencés (MySQL)</span>
+            <span>{projects.length} {t("proj_badge_suffix")}</span>
           </div>
           <h1 className="text-xl font-bold text-white tracking-tight">
-            Chantiers & Projets Slassi Travaux
+            {t("proj_title")}
           </h1>
           <p className="text-xs text-slate-400">
-            Gérez simplement la liste des chantiers (Terrassement, VRD, Bâtiment) synchronisés avec la base de données.
+            {t("proj_desc")}
           </p>
         </div>
 
@@ -172,8 +172,8 @@ export function SimpleProjects({ onNewProjectModalOpen }: SimpleProjectsProps) {
             onClick={fetchProjects}
             className="text-xs border-slate-700 text-slate-300 hover:text-white hover:bg-slate-800"
           >
-            <RefreshCw className={`h-3.5 w-3.5 mr-1 ${loading ? "animate-spin text-sky-400" : ""}`} />
-            <span>Actualiser</span>
+            <RefreshCw className={`h-3.5 w-3.5 mr-1 rtl:mr-0 rtl:ml-1 ${loading ? "animate-spin text-sky-400" : ""}`} />
+            <span>{t("proj_refresh")}</span>
           </Button>
 
           <Button
@@ -181,7 +181,7 @@ export function SimpleProjects({ onNewProjectModalOpen }: SimpleProjectsProps) {
             className="bg-sky-600 hover:bg-sky-500 text-white font-semibold text-xs flex items-center gap-1.5 shadow-md cursor-pointer"
           >
             <Plus className="h-4 w-4" />
-            <span>Nouveau Chantier</span>
+            <span>{t("proj_new")}</span>
           </Button>
         </div>
       </div>
@@ -190,11 +190,11 @@ export function SimpleProjects({ onNewProjectModalOpen }: SimpleProjectsProps) {
       <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 text-xs">
         <div className="flex flex-wrap items-center gap-1.5 bg-slate-900/60 p-1 rounded-lg border border-slate-800">
           {[
-            { id: "all", label: "Tous les projets" },
-            { id: "Gros Œuvre", label: "Gros Œuvre" },
-            { id: "VRD & Assainissement", label: "VRD" },
-            { id: "Terrassement", label: "Terrassement" },
-            { id: "Voirie", label: "Voirie" },
+            { id: "all", label: t("proj_filter_all") },
+            { id: "Gros Œuvre", label: t("proj_filter_building") },
+            { id: "VRD & Assainissement", label: t("proj_filter_vrd") },
+            { id: "Terrassement", label: t("proj_filter_terr") },
+            { id: "Voirie", label: t("proj_filter_voirie") },
           ].map((cat) => (
             <button
               key={cat.id}
@@ -214,10 +214,10 @@ export function SimpleProjects({ onNewProjectModalOpen }: SimpleProjectsProps) {
           <Search className="h-3.5 w-3.5 absolute left-3 top-2.5 text-slate-400" />
           <input
             type="text"
-            placeholder="Rechercher un chantier..."
+            placeholder={t("proj_search_ph")}
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full h-8 pl-9 pr-3 text-xs bg-slate-900/80 border border-slate-700 rounded-lg text-slate-200 placeholder:text-slate-500 focus:outline-none focus:ring-1 focus:ring-sky-500"
+            className={`w-full h-8 text-xs bg-slate-900/80 border border-slate-700 rounded-lg text-slate-200 placeholder:text-slate-500 focus:outline-none focus:ring-1 focus:ring-sky-500 ${language === "ar" ? "pr-9 pl-3 text-right" : "pl-9 pr-3"}`}
           />
         </div>
       </div>
@@ -253,7 +253,7 @@ export function SimpleProjects({ onNewProjectModalOpen }: SimpleProjectsProps) {
                       : "bg-amber-500/15 border-amber-500/30 text-amber-400"
                   }`}
                 >
-                  {proj.status === "done" ? "✓ Réceptionné" : "⏳ En cours"}
+                  {proj.status === "done" ? `✓ ${t("proj_status_done")}` : `⏳ ${t("proj_status_ongoing")}`}
                 </button>
               </div>
 
@@ -265,14 +265,14 @@ export function SimpleProjects({ onNewProjectModalOpen }: SimpleProjectsProps) {
                     {proj.location}
                   </span>
                   <span>•</span>
-                  <span>Client : {proj.client}</span>
+                  <span>• {proj.client}</span>
                 </div>
               </div>
 
               {/* Progress bar */}
               <div className="space-y-1">
                 <div className="flex items-center justify-between text-[11px] text-slate-400">
-                  <span>Progression des travaux</span>
+                  <span>{t("proj_progress")} (%)</span>
                   <span className="font-mono font-bold text-slate-200">
                     {proj.progress}%
                   </span>
@@ -302,7 +302,7 @@ export function SimpleProjects({ onNewProjectModalOpen }: SimpleProjectsProps) {
                   onClick={() => handleToggleStatus(proj.id)}
                   className="text-[11px] text-slate-300 hover:text-white cursor-pointer"
                 >
-                  {proj.status === "done" ? "Marquer en cours" : "Marquer terminé"}
+                  {proj.status === "done" ? t("proj_mark_ongoing") : t("proj_mark_done")}
                 </Button>
                 <button
                   onClick={() => handleDelete(proj.id)}
@@ -319,7 +319,7 @@ export function SimpleProjects({ onNewProjectModalOpen }: SimpleProjectsProps) {
 
       {filtered.length === 0 && (
         <div className="p-8 text-center text-xs text-slate-400 border border-dashed border-slate-800 rounded-xl">
-          Aucun chantier ne correspond à votre recherche.
+          {t("proj_search_ph")}
         </div>
       )}
 
@@ -343,7 +343,7 @@ export function SimpleProjects({ onNewProjectModalOpen }: SimpleProjectsProps) {
             <form onSubmit={handleAddProject} className="space-y-3 text-xs">
               <div>
                 <label className="block text-slate-300 font-medium mb-1">
-                  Nom du Chantier *
+                  {t("proj_form_title")} *
                 </label>
                 <Input
                   required
@@ -356,7 +356,7 @@ export function SimpleProjects({ onNewProjectModalOpen }: SimpleProjectsProps) {
               <div className="grid grid-cols-2 gap-2">
                 <div>
                   <label className="block text-slate-300 font-medium mb-1">
-                    Catégorie
+                    {t("proj_form_category")}
                   </label>
                   <select
                     value={newCategory}
@@ -373,7 +373,7 @@ export function SimpleProjects({ onNewProjectModalOpen }: SimpleProjectsProps) {
                 </div>
                 <div>
                   <label className="block text-slate-300 font-medium mb-1">
-                    Budget Estimé
+                    {t("proj_form_budget")}
                   </label>
                   <Input
                     placeholder="ex: 15 000 000"
@@ -385,7 +385,7 @@ export function SimpleProjects({ onNewProjectModalOpen }: SimpleProjectsProps) {
 
               <div>
                 <label className="block text-slate-300 font-medium mb-1">
-                  Client / Promoteur
+                  {t("proj_form_client")}
                 </label>
                 <Input
                   placeholder="ex: Groupe Immobilier Saïss"
@@ -396,7 +396,7 @@ export function SimpleProjects({ onNewProjectModalOpen }: SimpleProjectsProps) {
 
               <div>
                 <label className="block text-slate-300 font-medium mb-1">
-                  Lieu (Ville / Quartier)
+                  {t("proj_form_location")}
                 </label>
                 <Input
                   placeholder="ex: Fès - Ville Nouvelle"
@@ -407,7 +407,7 @@ export function SimpleProjects({ onNewProjectModalOpen }: SimpleProjectsProps) {
 
               <div>
                 <label className="block text-slate-300 font-medium mb-1 flex items-center justify-between">
-                  <span>Avancement des Travaux</span>
+                  <span>{t("proj_form_progress")}</span>
                   <span className="font-mono text-amber-400 font-bold">{newProgress}%</span>
                 </label>
                 <input
@@ -435,7 +435,7 @@ export function SimpleProjects({ onNewProjectModalOpen }: SimpleProjectsProps) {
                   disabled={isSubmitting}
                   className="bg-sky-600 hover:bg-sky-500 text-white font-bold cursor-pointer"
                 >
-                  {isSubmitting ? "Enregistrement SQL..." : "Enregistrer le Chantier"}
+                  {isSubmitting ? t("proj_submitting") : t("proj_submit")}
                 </Button>
               </div>
             </form>

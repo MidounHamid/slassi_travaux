@@ -5,10 +5,7 @@ import {
   FileText,
   ExternalLink,
   Eye,
-  Layers,
   Sparkles,
-  CheckCircle2,
-  SlidersHorizontal,
   Home,
   Info,
   Briefcase,
@@ -42,22 +39,14 @@ export function SimplePages({
 
   const getPageIcon = (slug: string) => {
     switch (slug) {
-      case "":
-        return Home;
-      case "about":
-        return Info;
-      case "services":
-        return Briefcase;
-      case "projects":
-        return HardHat;
-      case "equipment":
-        return Truck;
-      case "estimator":
-        return Calculator;
-      case "contact":
-        return Phone;
-      default:
-        return FileText;
+      case "": return Home;
+      case "about": return Info;
+      case "services": return Briefcase;
+      case "projects": return HardHat;
+      case "equipment": return Truck;
+      case "estimator": return Calculator;
+      case "contact": return Phone;
+      default: return FileText;
     }
   };
 
@@ -72,20 +61,20 @@ export function SimplePages({
         <div>
           <div className="inline-flex items-center gap-2 px-2.5 py-0.5 rounded-full bg-amber-500/15 border border-amber-500/30 text-amber-400 text-xs font-semibold mb-1.5">
             <Sparkles className="h-3.5 w-3.5" />
-            <span>Gestion Simple & Directe</span>
+            <span>{t("sp_badge")}</span>
           </div>
           <h1 className="text-xl font-bold text-white tracking-tight">
-            Pages Publiques de Votre Site Web
+            {t("sp_title")}
           </h1>
           <p className="text-xs text-slate-400">
-            Visualisez et modifiez directement le modèle de présentation de chaque page du site Slassi Travaux.
+            {t("sp_desc")}
           </p>
         </div>
       </div>
 
       {/* Pages List */}
       <div className="space-y-3">
-        {pages.map((p, index) => {
+        {pages.map((p) => {
           const PageIcon = getPageIcon(p.slug);
           const liveUrl = getPageUrl(p.slug);
 
@@ -104,7 +93,7 @@ export function SimplePages({
                   <div className="flex items-center gap-2">
                     <h3 className="text-sm font-bold text-white">{p.title}</h3>
                     <Badge variant="success" className="text-[10px] py-0 px-2">
-                      En ligne
+                      {t("sp_online")}
                     </Badge>
                   </div>
                   <div className="flex flex-wrap items-center gap-2 text-xs text-slate-400">
@@ -113,7 +102,7 @@ export function SimplePages({
                     </span>
                     <span>•</span>
                     <span className="text-slate-400">
-                      Modifié : {p.lastModified}
+                      {t("sp_modified")} {p.lastModified}
                     </span>
                   </div>
                 </div>
@@ -124,7 +113,7 @@ export function SimplePages({
                 {/* Layout Dropdown */}
                 <div className="flex items-center gap-2">
                   <span className="text-xs text-slate-400 hidden lg:inline">
-                    Gabarit :
+                    {t("sp_layout_label")}
                   </span>
                   <select
                     value={p.actualLayout}
@@ -150,11 +139,11 @@ export function SimplePages({
                     size="xs"
                     variant="outline"
                     onClick={() => onPreviewLayout(p.actualLayout)}
-                    title="Voir l'aperçu du modèle"
+                    title={t("sp_preview_btn")}
                     className="text-xs text-slate-300 hover:text-white flex items-center gap-1 border-slate-700"
                   >
                     <Eye className="h-3.5 w-3.5 text-amber-400" />
-                    <span>Aperçu</span>
+                    <span>{t("sp_preview_btn")}</span>
                   </Button>
 
                   <a
@@ -163,8 +152,8 @@ export function SimplePages({
                     rel="noreferrer"
                     className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 text-xs font-semibold transition-colors"
                   >
-                    <span>Voir en direct</span>
-                    <ExternalLink className="h-3 w-3 text-sky-400" />
+                    <span>{t("sp_view_btn")}</span>
+                    <ExternalLink className="h-3 w-3 text-sky-400 rtl:rotate-180" />
                   </a>
                 </div>
               </div>

@@ -54,7 +54,7 @@ export function TopHeader({ onSearchClick, onNavigateHome, user, onLogout }: Top
 
         <div className="hidden lg:flex items-center space-x-1.5 rtl:space-x-reverse text-xs text-slate-400">
           <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-          <span className="text-slate-300 font-medium">Portail de Gestion Officiel</span>
+          <span className="text-slate-300 font-medium">{t("portal_official_badge")}</span>
         </div>
       </div>
 
@@ -67,7 +67,7 @@ export function TopHeader({ onSearchClick, onNavigateHome, user, onLogout }: Top
           rel="noreferrer"
           className="inline-flex items-center space-x-1.5 rtl:space-x-reverse text-xs px-3 py-1.5 rounded-lg bg-amber-500/15 hover:bg-amber-500/25 text-amber-300 border border-amber-500/35 font-semibold transition-all shadow-xs"
         >
-          <span>{language === "ar" ? "زيارة الموقع" : "Voir le Site Public"}</span>
+          <span>{t("view_site")}</span>
           <ExternalLink className="h-3.5 w-3.5 rtl:rotate-180" />
         </a>
 
@@ -120,6 +120,15 @@ export function TopHeader({ onSearchClick, onNavigateHome, user, onLogout }: Top
             .join("")
             .toUpperCase() || "HS";
 
+          const roleColors: Record<string, string> = {
+            super_admin: "text-amber-400 bg-amber-500/15 border-amber-500/30",
+            project_manager: "text-emerald-400 bg-emerald-500/15 border-emerald-500/30",
+            fleet_manager: "text-blue-400 bg-blue-500/15 border-blue-500/30",
+            commercial: "text-purple-400 bg-purple-500/15 border-purple-500/30",
+          };
+
+          const roleClass = roleColors[user?.role || "super_admin"] || "text-slate-300 bg-slate-700/30 border-slate-600";
+
           return (
             <div className="flex items-center space-x-2 rtl:space-x-reverse px-2.5 py-1 rounded-xl bg-slate-800/80 border border-slate-700/80 text-xs">
               <Avatar
@@ -128,12 +137,30 @@ export function TopHeader({ onSearchClick, onNavigateHome, user, onLogout }: Top
                 className="bg-gradient-to-br from-amber-500 to-amber-600 text-slate-950 font-black border-amber-400/30 text-xs h-7 w-7"
               />
               <div className="hidden sm:flex flex-col text-left rtl:text-right leading-tight">
-                <div className="flex items-center space-x-1 rtl:space-x-reverse">
-                  <span className="font-bold text-white">{userName}</span>
-                  <ShieldCheck className="h-3 w-3 text-emerald-400" />
+                <div className="flex items-center space-x-1.5 rtl:space-x-reverse">
+                  <span className="font-bold text-white truncate max-w-[120px]">{userName}</span>
+                  <span className={`text-[9px] font-bold px-1.5 py-0.2 rounded border ${roleClass}`}>
+                    {(() => {
+                      if (language === "ar") {
+                        if (user?.role === "super_admin") return "المدير العام";
+                        if (user?.role === "project_manager") return "مدير المشاريع";
+                        if (user?.role === "fleet_manager") return "مسؤول الآليات";
+                        if (user?.role === "commercial") return "تجاري";
+                        return user?.role_label || "مسؤول";
+                      }
+                      if (language === "en") {
+                        if (user?.role === "super_admin") return "Super Admin";
+                        if (user?.role === "project_manager") return "Project Manager";
+                        if (user?.role === "fleet_manager") return "Fleet Manager";
+                        if (user?.role === "commercial") return "Commercial";
+                        return user?.role || "Admin";
+                      }
+                      return user?.role_label || "Admin";
+                    })()}
+                  </span>
                 </div>
-                <span className="text-[10px] text-slate-400">
-                  {user?.email || "Directeur Général"}
+                <span className="text-[10px] text-slate-400 truncate max-w-[180px]">
+                  {user?.job_title || user?.email}
                 </span>
               </div>
             </div>
@@ -145,12 +172,12 @@ export function TopHeader({ onSearchClick, onNavigateHome, user, onLogout }: Top
           <button
             type="button"
             onClick={onLogout}
-            title={language === "ar" ? "تسجيل الخروج" : "Déconnexion"}
+            title={t("btn_logout")}
             className="flex items-center space-x-1.5 rtl:space-x-reverse px-2.5 py-1.5 rounded-xl bg-red-500/10 hover:bg-red-500/20 text-red-300 hover:text-red-200 border border-red-500/30 transition-all cursor-pointer text-xs"
           >
             <LogOut className="h-3.5 w-3.5" />
             <span className="hidden md:inline font-medium">
-              {language === "ar" ? "خروج" : "Déconnexion"}
+              {t("btn_logout")}
             </span>
           </button>
         )}

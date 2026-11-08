@@ -20,7 +20,29 @@ class AuthController extends Controller
     }
 
     /**
-     * Authenticate user and issue JWT token.
+     * Format user data with roles and permissions.
+     */
+    protected function formatUserData(User $user): array
+    {
+        $roleName = $user->roleModel ? $user->roleModel->name : ($user->role ?: 'viewer');
+        $roleLabel = $user->roleModel ? $user->roleModel->label_fr : 'Collaborateur';
+        $permissions = $user->getAllPermissions();
+
+        return [
+            'id' => $user->id,
+            'name' => $user->name,
+            'email' => $user->email,
+            'role' => $roleName,
+            'role_label' => $roleLabel,
+            'job_title' => $user->job_title ?: $roleLabel,
+            'status' => $user->status ?: 'active',
+            'permissions' => $permissions,
+            'created_at' => $user->created_at,
+        ];
+    }
+
+    /**
+     * Authenticate user and issue JWT token with roles and permissions.
      */
     public function login(Request $request): JsonResponse
     {
@@ -41,7 +63,9 @@ class AuthController extends Controller
             ], 422);
         }
 
-        $user = User::where('email', strtolower(trim($request->email)))->first();
+        $user = User::with('roleModel.permissions')
+            ->where('email', strtolower(trim($request->email)))
+            ->first();
 
         if (!$user || !Hash::check($request->password, $user->password)) {
             return response()->json([
@@ -50,10 +74,21 @@ class AuthController extends Controller
             ], 401);
         }
 
+        if ($user->status === 'inactive') {
+            return response()->json([
+                'success' => false,
+                'message' => 'Votre compte est suspendu. Veuillez contacter la direction.',
+            ], 403);
+        }
+
+        $formattedUser = $this->formatUserData($user);
+
         $payload = [
             'sub' => $user->id,
             'email' => $user->email,
             'name' => $user->name,
+            'role' => $formattedUser['role'],
+            'role_label' => $formattedUser['role_label'],
         ];
 
         $token = $this->jwtService->generateToken($payload, 604800); // 7 days
@@ -64,17 +99,12 @@ class AuthController extends Controller
             'token' => $token,
             'token_type' => 'Bearer',
             'expires_in' => 604800,
-            'user' => [
-                'id' => $user->id,
-                'name' => $user->name,
-                'email' => $user->email,
-                'created_at' => $user->created_at,
-            ],
+            'user' => $formattedUser,
         ]);
     }
 
     /**
-     * Get the authenticated user from JWT.
+     * Get the authenticated user from JWT with role and permissions.
      */
     public function me(Request $request): JsonResponse
     {
@@ -96,7 +126,7 @@ class AuthController extends Controller
             ], 401);
         }
 
-        $user = User::find($payload['sub']);
+        $user = User::with('roleModel.permissions')->find($payload['sub']);
         if (!$user) {
             return response()->json([
                 'success' => false,
@@ -106,12 +136,7 @@ class AuthController extends Controller
 
         return response()->json([
             'success' => true,
-            'user' => [
-                'id' => $user->id,
-                'name' => $user->name,
-                'email' => $user->email,
-                'created_at' => $user->created_at,
-            ],
+            'user' => $this->formatUserData($user),
             'token_expires_at' => isset($payload['exp']) ? date('c', $payload['exp']) : null,
         ]);
     }

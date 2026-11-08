@@ -95,7 +95,51 @@ export interface AuthUser {
   id: number;
   name: string;
   email: string;
+  role: "super_admin" | "project_manager" | "fleet_manager" | "commercial" | string;
+  role_label: string;
+  job_title?: string;
+  status?: string;
+  permissions: string[];
   created_at?: string;
+}
+
+export interface ApiPermission {
+  id: number;
+  name: string;
+  label_fr: string;
+  label_ar?: string;
+  module: string;
+}
+
+export interface ApiRole {
+  id: number;
+  name: string;
+  label_fr: string;
+  label_ar?: string;
+  description?: string;
+  is_system: boolean;
+  users_count: number;
+  permissions: ApiPermission[];
+  users?: { id: number; name: string; email: string; job_title?: string; status?: string }[];
+}
+
+export interface ApiTeamMember {
+  id: number;
+  name: string;
+  email: string;
+  role: string;
+  role_label: string;
+  role_id?: number;
+  job_title: string;
+  status: string;
+  permissions_count: number;
+  created_at?: string;
+}
+
+export function hasPermission(user: AuthUser | null, permissionName: string): boolean {
+  if (!user) return false;
+  if (user.role === "super_admin") return true;
+  return user.permissions?.includes(permissionName) ?? false;
 }
 
 export interface LoginResponse {
@@ -372,5 +416,98 @@ export const api = {
   getStoredUser: getStoredUser,
   isAuthenticated(): boolean {
     return !!getAuthToken();
+  },
+
+  // 8. Roles & Permissions API
+  async getRoles(): Promise<ApiRole[]> {
+    const res = await request<{ success: boolean; data: ApiRole[] }>("/roles");
+    return res.data;
+  },
+
+  async createRole(data: {
+    label_fr: string;
+    name?: string;
+    label_ar?: string;
+    description?: string;
+    permissions?: number[];
+  }): Promise<{ success: boolean; message: string; data: ApiRole }> {
+    return request<{ success: boolean; message: string; data: ApiRole }>("/roles", {
+      method: "POST",
+      body: JSON.stringify(data),
+    });
+  },
+
+  async updateRole(
+    id: number,
+    data: {
+      label_fr: string;
+      label_ar?: string;
+      description?: string;
+      permissions?: number[];
+    }
+  ): Promise<{ success: boolean; message: string; data: ApiRole }> {
+    return request<{ success: boolean; message: string; data: ApiRole }>(`/roles/${id}`, {
+      method: "PUT",
+      body: JSON.stringify(data),
+    });
+  },
+
+  async deleteRole(id: number): Promise<{ success: boolean; message: string }> {
+    return request<{ success: boolean; message: string }>(`/roles/${id}`, {
+      method: "DELETE",
+    });
+  },
+
+  async getPermissions(): Promise<{ groups: Record<string, ApiPermission[]>; list: ApiPermission[] }> {
+    const res = await request<{ success: boolean; data: Record<string, ApiPermission[]>; list: ApiPermission[] }>("/permissions");
+    return { groups: res.data, list: res.list || [] };
+  },
+
+  async createPermission(data: {
+    name: string;
+    label_fr: string;
+    label_ar?: string;
+    module: string;
+  }): Promise<{ success: boolean; message: string; data: ApiPermission }> {
+    return request<{ success: boolean; message: string; data: ApiPermission }>("/permissions", {
+      method: "POST",
+      body: JSON.stringify(data),
+    });
+  },
+
+  async updatePermission(
+    id: number,
+    data: {
+      label_fr: string;
+      label_ar?: string;
+      module: string;
+    }
+  ): Promise<{ success: boolean; message: string; data: ApiPermission }> {
+    return request<{ success: boolean; message: string; data: ApiPermission }>(`/permissions/${id}`, {
+      method: "PUT",
+      body: JSON.stringify(data),
+    });
+  },
+
+  async deletePermission(id: number): Promise<{ success: boolean; message: string }> {
+    return request<{ success: boolean; message: string }>(`/permissions/${id}`, {
+      method: "DELETE",
+    });
+  },
+
+  async getTeamMembers(): Promise<ApiTeamMember[]> {
+    const res = await request<{ success: boolean; data: ApiTeamMember[] }>("/users");
+    return res.data;
+  },
+
+  async updateUserRole(
+    userId: number,
+    roleId: number,
+    jobTitle?: string
+  ): Promise<{ success: boolean; message: string; user: any }> {
+    return request<{ success: boolean; message: string; user: any }>(`/users/${userId}/role`, {
+      method: "PUT",
+      body: JSON.stringify({ role_id: roleId, job_title: jobTitle }),
+    });
   },
 };

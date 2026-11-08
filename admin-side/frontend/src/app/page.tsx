@@ -17,6 +17,7 @@ import { CheckCircle2, Building2 } from "lucide-react";
 import { useLanguage } from "@/context/LanguageContext";
 import { api, AuthUser } from "@/lib/api";
 import { LoginForm } from "@/components/admin/LoginForm";
+import { TeamRolesManagement } from "@/components/admin/TeamRolesManagement";
 
 export default function AdminPage() {
   const { t, language } = useLanguage();
@@ -226,6 +227,7 @@ export default function AdminPage() {
         <Sidebar
           activeSection={activeSection}
           onSelectSection={(sec) => setActiveSection(sec)}
+          user={currentUser}
         />
 
         {/* Main Content Area */}
@@ -260,6 +262,23 @@ export default function AdminPage() {
 
             {/* 6. Company Legal & Contact Settings */}
             {activeSection === "settings" && <CompanySettings />}
+
+            {/* 7. Roles, Permissions & Team Access */}
+            {activeSection === "team" && (
+              <TeamRolesManagement
+                currentUser={currentUser}
+                onRefreshUser={async () => {
+                  try {
+                    const res = await api.me();
+                    if (res.success && res.user) {
+                      setCurrentUser(res.user);
+                    }
+                  } catch (e) {
+                    console.warn("Failed refreshing user:", e);
+                  }
+                }}
+              />
+            )}
           </div>
         </main>
       </div>

@@ -84,11 +84,11 @@ export function SimpleDashboard({
               {isLive ? (
                 <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-emerald-500/15 border border-emerald-500/30 text-emerald-400 text-[11px] font-semibold">
                   <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-                  <span>Base de données SQL connectée</span>
+                  <span>{t("dashboard_sql_connected")}</span>
                 </span>
               ) : (
                 <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-slate-800 text-slate-400 text-[11px]">
-                  Mode Local
+                  {t("dashboard_local_mode")}
                 </span>
               )}
             </div>
@@ -116,7 +116,7 @@ export function SimpleDashboard({
           <div className="flex items-center gap-2 self-start md:self-center shrink-0">
             <button
               onClick={fetchDashboardData}
-              title="Rafraîchir les données SQL"
+              title={t("dashboard_refresh_title")}
               className="p-2.5 rounded-xl bg-slate-800/80 hover:bg-slate-700 text-slate-300 border border-slate-700 transition-colors cursor-pointer"
             >
               <RefreshCw className={`h-4 w-4 ${loading ? "animate-spin text-amber-400" : ""}`} />
@@ -128,7 +128,7 @@ export function SimpleDashboard({
               rel="noreferrer"
               className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs shadow-lg hover:shadow-amber-500/20 transition-all cursor-pointer"
             >
-              <span>{language === "ar" ? "معاينة الموقع المباشر" : "Voir le Site Public"}</span>
+              <span>{t("dashboard_view_public")}</span>
               <ExternalLink className="h-3.5 w-3.5" />
             </a>
           </div>
@@ -145,16 +145,16 @@ export function SimpleDashboard({
           <div className="flex items-start justify-between">
             <div className="space-y-1">
               <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">
-                {language === "ar" ? "طلبات التقدير" : "Demandes Devis"}
+                {t("dashboard_quotes_label")}
               </span>
               <div className="text-2xl font-black text-white tracking-tight flex items-baseline gap-2">
                 <span>{metrics.quotes.total}</span>
                 <span className="text-xs font-semibold text-amber-400">
-                  {metrics.quotes.pending} {language === "ar" ? "جديدة" : "en attente"}
+                  {metrics.quotes.pending} {t("dashboard_quotes_pending")}
                 </span>
               </div>
               <p className="text-[11px] text-slate-400">
-                {language === "ar" ? "عبر حاسبة الموقع الإلكتروني" : "Reçus via le simulateur web"}
+                {t("dashboard_quotes_via")}
               </p>
             </div>
             <div className="p-3 rounded-xl bg-purple-500/15 border border-purple-500/30 text-purple-400 group-hover:scale-110 transition-transform">
@@ -162,7 +162,7 @@ export function SimpleDashboard({
             </div>
           </div>
           <div className="mt-4 pt-3 border-t border-slate-800 flex items-center justify-between text-xs font-semibold text-amber-400 group-hover:text-amber-300">
-            <span>{language === "ar" ? "معالجة الطلبات" : "Traiter les devis"}</span>
+            <span>{t("dashboard_quotes_action")}</span>
             <ArrowRight className="h-3.5 w-3.5 rtl:rotate-180 group-hover:translate-x-1 rtl:group-hover:-translate-x-1 transition-transform" />
           </div>
         </div>
@@ -175,16 +175,16 @@ export function SimpleDashboard({
           <div className="flex items-start justify-between">
             <div className="space-y-1">
               <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">
-                {language === "ar" ? "الأوراش الجارية" : "Chantiers Actifs"}
+                {t("dashboard_projects_label")}
               </span>
               <div className="text-2xl font-black text-white tracking-tight flex items-baseline gap-2">
                 <span>{metrics.projects.ongoing}</span>
                 <span className="text-xs font-semibold text-sky-400">
-                  {metrics.projects.total} au total
+                  {metrics.projects.total} {t("dashboard_projects_total")}
                 </span>
               </div>
               <p className="text-[11px] text-slate-400">
-                {language === "ar" ? "أشغال كبرى، طرقات، تهيئة" : "Gros œuvre, VRD, Terrassement"}
+                {t("dashboard_projects_types")}
               </p>
             </div>
             <div className="p-3 rounded-xl bg-sky-500/15 border border-sky-500/30 text-sky-400 group-hover:scale-110 transition-transform">
@@ -192,7 +192,7 @@ export function SimpleDashboard({
             </div>
           </div>
           <div className="mt-4 pt-3 border-t border-slate-800 flex items-center justify-between text-xs font-semibold text-sky-400 group-hover:text-sky-300">
-            <span>{language === "ar" ? "إدارة الأوراش" : "Gérer les chantiers"}</span>
+            <span>{t("dashboard_projects_action")}</span>
             <ArrowRight className="h-3.5 w-3.5 rtl:rotate-180 group-hover:translate-x-1 rtl:group-hover:-translate-x-1 transition-transform" />
           </div>
         </div>
@@ -205,16 +205,16 @@ export function SimpleDashboard({
           <div className="flex items-start justify-between">
             <div className="space-y-1">
               <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">
-                {language === "ar" ? "أسطول الآليات" : "Parc d'Engins"}
+                {t("dashboard_mach_label")}
               </span>
               <div className="text-2xl font-black text-white tracking-tight flex items-baseline gap-2">
                 <span>{metrics.machinery.total}</span>
                 <span className="text-xs font-semibold text-emerald-400">
-                  {metrics.machinery.available} dispos
+                  {metrics.machinery.available} {t("dashboard_mach_dispos")}
                 </span>
               </div>
               <p className="text-[11px] text-slate-400">
-                {metrics.machinery.onSite} sur chantiers • {metrics.machinery.maintenance} atelier
+                {metrics.machinery.onSite} {t("dashboard_mach_detail")}
               </p>
             </div>
             <div className="p-3 rounded-xl bg-emerald-500/15 border border-emerald-500/30 text-emerald-400 group-hover:scale-110 transition-transform">
@@ -222,7 +222,7 @@ export function SimpleDashboard({
             </div>
           </div>
           <div className="mt-4 pt-3 border-t border-slate-800 flex items-center justify-between text-xs font-semibold text-emerald-400 group-hover:text-emerald-300">
-            <span>{language === "ar" ? "تفقد الآليات" : "Voir le parc matériel"}</span>
+            <span>{t("dashboard_mach_action")}</span>
             <ArrowRight className="h-3.5 w-3.5 rtl:rotate-180 group-hover:translate-x-1 rtl:group-hover:-translate-x-1 transition-transform" />
           </div>
         </div>
@@ -235,16 +235,16 @@ export function SimpleDashboard({
           <div className="flex items-start justify-between">
             <div className="space-y-1">
               <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">
-                {language === "ar" ? "صفحات الموقع" : "Pages du Site"}
+                {t("dashboard_pages_label")}
               </span>
               <div className="text-2xl font-black text-white tracking-tight flex items-baseline gap-2">
                 <span>{metrics.pages.total}</span>
                 <span className="text-xs font-semibold text-emerald-400">
-                  En ligne
+                  {t("dashboard_pages_online")}
                 </span>
               </div>
               <p className="text-[11px] text-slate-400">
-                {language === "ar" ? "الصفحات الرئيسية العامة" : "Accueil, Services, Chantiers..."}
+                {t("dashboard_pages_types")}
               </p>
             </div>
             <div className="p-3 rounded-xl bg-amber-500/15 border border-amber-500/30 text-amber-400 group-hover:scale-110 transition-transform">
@@ -252,7 +252,7 @@ export function SimpleDashboard({
             </div>
           </div>
           <div className="mt-4 pt-3 border-t border-slate-800 flex items-center justify-between text-xs font-semibold text-amber-400 group-hover:text-amber-300">
-            <span>{language === "ar" ? "تعديل الصفحات" : "Modifier les pages"}</span>
+            <span>{t("dashboard_pages_action")}</span>
             <ArrowRight className="h-3.5 w-3.5 rtl:rotate-180 group-hover:translate-x-1 rtl:group-hover:-translate-x-1 transition-transform" />
           </div>
         </div>
@@ -340,7 +340,7 @@ export function SimpleDashboard({
                         variant={q.status === "pending" ? "warning" : "default"}
                         className="text-[10px] py-0 px-2"
                       >
-                        {q.status === "pending" ? "Nouveau" : q.status === "reviewed" ? "En étude" : "Contacté"}
+                        {q.status === "pending" ? t("dashboard_quote_new") : q.status === "reviewed" ? t("dashboard_quote_reviewed") : t("dashboard_quote_contacted")}
                       </Badge>
                     </div>
                     <span className="text-[11px] text-slate-400 flex items-center gap-1">
@@ -382,7 +382,7 @@ export function SimpleDashboard({
               ))
             ) : (
               <div className="p-6 text-center text-xs text-slate-400 border border-slate-800 rounded-xl">
-                Aucune demande récente.
+                {t("dashboard_no_quotes")}
               </div>
             )}
           </div>
@@ -415,7 +415,7 @@ export function SimpleDashboard({
                     {proj.category}
                   </Badge>
                   <span className="text-[11px] font-bold text-slate-300 font-mono">
-                    {proj.progress}% réalisé
+                    {proj.progress}% {t("dashboard_progress_label")}
                   </span>
                 </div>
 
@@ -441,11 +441,11 @@ export function SimpleDashboard({
 
                 <div className="flex items-center justify-between pt-1 text-[11px] text-slate-400">
                   <span className="font-mono font-semibold text-slate-200">
-                    Budget : {proj.budget}
+                    {t("dashboard_budget_label")} {proj.budget}
                   </span>
                   <span className="text-emerald-400 flex items-center gap-1 font-medium">
                     <CheckCircle2 className="h-3 w-3" />
-                    {proj.status === "done" ? "Réceptionné" : "En cours d'exécution"}
+                    {proj.status === "done" ? t("dashboard_status_done") : t("dashboard_status_ongoing")}
                   </span>
                 </div>
               </div>

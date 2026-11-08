@@ -89,7 +89,7 @@ export function CompanySettings() {
           className="bg-amber-600 hover:bg-amber-500 text-slate-950 font-bold flex items-center space-x-1 rtl:space-x-reverse cursor-pointer"
         >
           {saved ? <Check className="h-4 w-4" /> : <Save className="h-4 w-4" />}
-          <span>{saved ? t("btn_saved_success") : loading ? "Enregistrement..." : t("btn_save")}</span>
+          <span>{saved ? t("btn_saved_success") : loading ? t("settings_saving") : t("btn_save")}</span>
         </Button>
       </div>
 
@@ -129,7 +129,7 @@ export function CompanySettings() {
               </div>
             </div>
             <div>
-              <label className="block text-slate-400 mb-1">ICE (Identifiant Commun de l'Entreprise)</label>
+              <label className="block text-slate-400 mb-1">{t("settings_ice_label")}</label>
               <Input value={ice} onChange={(e) => setIce(e.target.value)} />
             </div>
           </CardContent>

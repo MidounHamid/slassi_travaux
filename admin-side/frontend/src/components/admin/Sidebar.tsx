@@ -17,13 +17,15 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useLanguage } from "@/context/LanguageContext";
+import { AuthUser } from "@/lib/api";
 
 interface SidebarProps {
   activeSection: string;
   onSelectSection: (section: string) => void;
+  user?: AuthUser | null;
 }
 
-export function Sidebar({ activeSection, onSelectSection }: SidebarProps) {
+export function Sidebar({ activeSection, onSelectSection, user }: SidebarProps) {
   const [collapsed, setCollapsed] = useState(false);
   const { t, language } = useLanguage();
 
@@ -72,6 +74,24 @@ export function Sidebar({ activeSection, onSelectSection }: SidebarProps) {
       label: t("nav_settings"),
       desc: t("nav_settings_desc"),
       icon: Building2,
+    },
+    {
+      id: "team",
+      label:
+        language === "ar"
+          ? "الأدوار والصلاحيات"
+          : language === "en"
+          ? "Roles & Permissions"
+          : "Rôles & Équipe",
+      desc:
+        language === "ar"
+          ? "إدارة الوصول والامتيازات"
+          : language === "en"
+          ? "BTP Access & Matrix"
+          : "Matrice des permissions BTP",
+      icon: Shield,
+      badge: user?.role === "super_admin" ? "ADMIN" : undefined,
+      badgeColor: "bg-amber-500/20 text-amber-300 border border-amber-500/30",
     },
   ];
 
@@ -162,24 +182,27 @@ export function Sidebar({ activeSection, onSelectSection }: SidebarProps) {
         </div>
       </div>
 
-      {/* Bottom Owner Company Info Card */}
+      {/* Bottom User Role & Company Info Card */}
       {!collapsed ? (
-        <div className="p-3 border-t border-slate-800/80 bg-slate-900/40 text-xs">
+        <div className="p-3 border-t border-slate-800/80 bg-slate-900/60 text-xs">
+          {user && (
+            <div className="mb-2 pb-2 border-b border-slate-800 flex items-center justify-between">
+              <div className="truncate">
+                <div className="text-[11px] font-bold text-white truncate">{user.name}</div>
+                <div className="text-[10px] text-amber-400 font-medium truncate">{user.role_label}</div>
+              </div>
+              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse shrink-0 ml-1.5 rtl:ml-0 rtl:mr-1.5" />
+            </div>
+          )}
           <div className="flex items-center space-x-2 rtl:space-x-reverse mb-1">
-            <Shield className="h-4 w-4 text-amber-500 shrink-0" />
-            <div className="font-bold text-slate-200 truncate text-[11px]">
-              Slassi De Travaux SARL AU
+            <Shield className="h-3.5 w-3.5 text-amber-500 shrink-0" />
+            <div className="font-bold text-slate-300 truncate text-[11px]">
+              Slassi Travaux SARL AU
             </div>
           </div>
-          <p className="text-[10px] text-slate-400 leading-tight">
-            Capital : <span className="text-amber-400 font-mono font-bold">17 000 000 DH</span>
-          </p>
-          <div className="flex items-center justify-between mt-2 pt-2 border-t border-slate-800 text-[10px] text-slate-400">
-            <span className="flex items-center space-x-1 rtl:space-x-reverse text-emerald-400">
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
-              <span>Système Connecté</span>
-            </span>
-            <span className="text-slate-300 font-medium">Fès, Maroc</span>
+          <div className="flex items-center justify-between text-[10px] text-slate-400">
+            <span>Capital 17M DH</span>
+            <span className="text-slate-400">Fès, Maroc</span>
           </div>
         </div>
       ) : (
