@@ -195,7 +195,7 @@ export function Sidebar({ activeSection, onSelectSection, user }: SidebarProps) 
             </div>
           )}
           <div className="flex items-center space-x-2 rtl:space-x-reverse mb-1">
-            <Shield className="h-3.5 w-3.5 text-amber-500 shrink-0" />
+            <img src="/icon.png?v=3" alt="Slassi Travaux" className="h-4 w-4 object-contain shrink-0" />
             <div className="font-bold text-slate-300 truncate text-[11px]">
               Slassi Travaux SARL AU
             </div>

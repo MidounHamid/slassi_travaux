@@ -47,9 +47,11 @@ export const metadata: Metadata = {
   authors: [{ name: 'Slassi De Travaux Divers SARL AU' }],
   icons: {
     icon: [
-      { url: '/images/logo2.png', type: 'image/png' },
+      { url: '/icon.png?v=3', type: 'image/png' },
+      { url: '/favicon.ico?v=3', sizes: 'any' },
     ],
-    apple: '/images/logo2.png',
+    shortcut: '/favicon.ico?v=3',
+    apple: '/icon.png?v=3',
   },
 };
 
@@ -60,6 +62,11 @@ export default function RootLayout({
 }) {
   return (
     <html lang="fr" dir="ltr" className={`${montserrat.variable} ${inter.variable} ${cairo.variable} scroll-smooth`}>
+      <head>
+        <link rel="icon" href="/icon.png?v=3" type="image/png" />
+        <link rel="shortcut icon" href="/favicon.ico?v=3" />
+        <link rel="apple-touch-icon" href="/icon.png?v=3" />
+      </head>
       <body className="min-h-screen flex flex-col bg-[#0B1120] text-slate-100 antialiased selection:bg-amber-500 selection:text-slate-950">
         <LanguageProvider>
           <TopBar />

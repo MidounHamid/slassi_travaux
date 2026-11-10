@@ -194,8 +194,8 @@ export default function AdminPage() {
   if (isAuthenticated === null) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center bg-[#070b14] text-slate-300">
-        <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center text-slate-950 font-black mb-4 shadow-lg shadow-amber-500/20 animate-pulse">
-          <Building2 className="h-6 w-6" />
+        <div className="w-14 h-14 rounded-2xl bg-slate-900/90 border border-amber-500/40 flex items-center justify-center p-2 mb-4 shadow-lg shadow-amber-500/20 animate-pulse overflow-hidden">
+          <img src="/icon.png?v=3" alt="Slassi Travaux" className="w-full h-full object-contain" />
         </div>
         <div className="h-5 w-5 border-2 border-amber-500 border-t-transparent rounded-full animate-spin mb-3" />
         <p className="text-xs font-semibold tracking-wider text-slate-400 uppercase">

@@ -32,8 +32,8 @@ export function TopHeader({ onSearchClick, onNavigateHome, user, onLogout }: Top
           onClick={onNavigateHome}
           className="flex items-center space-x-2.5 rtl:space-x-reverse px-2.5 py-1.5 rounded-xl bg-slate-800/90 border border-slate-700/80 hover:border-amber-500/50 transition-all cursor-pointer text-left rtl:text-right group"
         >
-          <div className="w-7 h-7 rounded-lg bg-amber-500 flex items-center justify-center text-slate-950 font-black shadow-sm group-hover:scale-105 transition-transform">
-            <Building2 className="h-4 w-4" />
+          <div className="w-7 h-7 flex items-center justify-center bg-transparent group-hover:scale-105 transition-transform overflow-hidden">
+            <img src="/icon.png?v=3" alt="Slassi Travaux" className="w-full h-full object-contain" />
           </div>
           <div className="flex flex-col">
             <div className="flex items-center space-x-1.5 rtl:space-x-reverse">

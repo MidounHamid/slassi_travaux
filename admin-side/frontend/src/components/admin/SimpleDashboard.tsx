@@ -101,7 +101,7 @@ export function SimpleDashboard({
             </p>
             <div className="flex flex-wrap items-center gap-3 text-xs text-slate-400 pt-1">
               <span className="flex items-center gap-1.5 text-slate-300 font-medium">
-                <Building2 className="h-3.5 w-3.5 text-amber-400" />
+                <img src="/icon.png?v=3" alt="Slassi Travaux" className="h-4 w-4 object-contain inline-block" />
                 <span>{metrics.company.name} SARL AU</span>
               </span>
               <span>•</span>

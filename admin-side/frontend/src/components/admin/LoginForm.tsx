@@ -139,8 +139,8 @@ export function LoginForm({ onLoginSuccess }: LoginFormProps) {
           {/* Header Branding */}
           <div className="flex flex-col items-center text-center mb-6">
             <div className="relative mb-3">
-              <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-amber-400 via-amber-500 to-amber-600 flex items-center justify-center text-slate-950 font-black shadow-lg shadow-amber-500/20 ring-4 ring-amber-500/10">
-                <Building2 className="h-7 w-7" />
+              <div className="w-14 h-14 rounded-2xl bg-slate-900/90 border border-amber-500/40 flex items-center justify-center shadow-lg shadow-amber-500/20 ring-4 ring-amber-500/10 p-2 overflow-hidden">
+                <img src="/icon.png?v=3" alt="Slassi Travaux" className="w-full h-full object-contain" />
               </div>
               <div className="absolute -bottom-1 -right-1 w-6 h-6 rounded-full bg-slate-900 border-2 border-slate-800 flex items-center justify-center text-amber-400">
                 <KeyRound className="h-3 w-3" />
