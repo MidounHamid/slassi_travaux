@@ -9,6 +9,88 @@ import { projectsList as defaultProjectsList } from "../data/projectsData";
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:8000/api";
 
+// ─── Shared response types ────────────────────────────────────────────────────
+
+export interface ApiService {
+  id: number;
+  slug: string;
+  title: string;
+  shortDesc: string;
+  icon: string;
+  image: string | null;
+  scopes: string[];
+  advantageTitle: string;
+  advantageDesc: string;
+}
+
+export interface ApiTestimonial {
+  id: number;
+  clientName: string;
+  role: string;
+  company: string;
+  city: string;
+  comment: string;
+  rating: number;
+  avatarImage: string | null;
+}
+
+export interface ApiCommitment {
+  id: number;
+  title: string;
+  desc: string;
+  icon: string;
+  image: string | null;
+  badge: string;
+  standardCode: string | null;
+}
+
+export interface ApiEquipmentItem {
+  name: string;
+  image: string | null;
+}
+
+export interface ApiEquipmentCategory {
+  id: number;
+  slug: string;
+  title: string;
+  icon: string;
+  bannerImage: string | null;
+  items: ApiEquipmentItem[];
+}
+
+export interface ApiEquipmentStat {
+  count: number;
+  label: string;
+}
+
+export interface ApiEstimatorType {
+  key: string;
+  name: string;
+  baseRate: number;
+  unit: string;
+  icon: string;
+  image: string | null;
+}
+
+export interface ApiEstimatorFinish {
+  key: string;
+  name: string;
+  multiplier: number;
+  description: string;
+}
+
+export interface ApiEstimatorLocation {
+  key: string;
+  name: string;
+  logisticsMultiplier: number;
+}
+
+export interface ApiEstimatorConfig {
+  types: ApiEstimatorType[];
+  finishes: ApiEstimatorFinish[];
+  locations: ApiEstimatorLocation[];
+}
+
 export interface ContactSubmission {
   name: string;
   company?: string;
@@ -120,4 +202,63 @@ export const clientApi = {
     }
     return defaultCompanyProfile;
   },
+    // ─── New Public API endpoints
+/**
+     * GET /services
+     */
+    async getServices(lang: string = 'fr'): Promise<ApiService[]> {
+        const res = await request<{ success: boolean; data: ApiService[] }>(`/services?lang=${lang}`);
+        return res.data;
+    },
+
+    /**
+     * GET /services/{slug}
+     */
+    async getServiceBySlug(slug: string, lang: string = 'fr'): Promise<ApiService> {
+        const res = await request<{ success: boolean; data: ApiService }>(`/services/${slug}?lang=${lang}`);
+        return res.data;
+    },
+
+    /**
+     * GET /testimonials
+     */
+    async getTestimonials(lang: string = 'fr'): Promise<ApiTestimonial[]> {
+        const res = await request<{ success: boolean; data: ApiTestimonial[] }>(`/testimonials?lang=${lang}`);
+        return res.data;
+    },
+
+    /**
+     * GET /commitments
+     */
+    async getCommitments(lang: string = 'fr'): Promise<ApiCommitment[]> {
+        const res = await request<{ success: boolean; data: ApiCommitment[] }>(`/commitments?lang=${lang}`);
+        return res.data;
+    },
+
+    /**
+     * GET equipment stats and categories (combined)
+     */
+    async getEquipmentData(lang: string = 'fr'): Promise<{ stats: ApiEquipmentStat[]; categories: ApiEquipmentCategory[] }> {
+        const [statsRes, catRes] = await Promise.all([
+            request<{ success: boolean; data: ApiEquipmentStat[] }>(`/equipment/stats?lang=${lang}`),
+            request<{ success: boolean; data: ApiEquipmentCategory[] }>(`/equipment/categories?lang=${lang}`),
+        ]);
+        return { stats: statsRes.data, categories: catRes.data };
+    },
+
+    /**
+     * GET estimator configuration (types, finishes, locations)
+     */
+    async getEstimatorConfig(lang: string = 'fr'): Promise<ApiEstimatorConfig> {
+        const res = await request<{ success: boolean; data: ApiEstimatorConfig }>(`/estimator/config?lang=${lang}`);
+        return res.data;
+    },
+
+    /**
+     * GET team members
+     */
+    async getTeam(lang: string = 'fr'): Promise<any[]> {
+        const res = await request<{ success: boolean; data: any[] }>(`/team?lang=${lang}`);
+        return res.data;
+    },
 };

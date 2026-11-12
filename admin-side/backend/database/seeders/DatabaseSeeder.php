@@ -11,6 +11,18 @@ use App\Models\Machinery;
 use App\Models\Quote;
 use App\Models\CompanySetting;
 use App\Models\SitePage;
+use App\Models\Service;
+use App\Models\ServiceScope;
+use App\Models\Testimonial;
+use App\Models\Commitment;
+use App\Models\ProjectImage;
+use App\Models\EquipmentCategory;
+use App\Models\EquipmentCategoryItem;
+use App\Models\EquipmentStat;
+use App\Models\EstimatorProjectType;
+use App\Models\EstimatorFinish;
+use App\Models\EstimatorLocation;
+use App\Models\TeamMember;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
 
@@ -739,6 +751,672 @@ class DatabaseSeeder extends Seeder
                 ['page_key' => $pData['page_key']],
                 $pData
             );
+        }
+
+        // ==========================================
+        // 7. BTP SERVICES & TECHNICAL SCOPES
+        // ==========================================
+        $servicesData = [
+            [
+                'slug' => 'gros-oeuvre',
+                'title_fr' => 'Bâtiment & Gros Œuvre',
+                'title_ar' => 'البناء والأشغال الكبرى',
+                'title_en' => 'Building & Structural Works',
+                'short_desc_fr' => 'Fondations profondes, radiers, structures en béton armé conformes au RPS 2011 et ouvrages industriels.',
+                'short_desc_ar' => 'أساسات عميقة، خرسانة مسلحة مطابقة لمعايير الزلازل RPS 2011 وبناء المجمعات السكنية والصناعية.',
+                'short_desc_en' => 'Deep foundations, reinforced concrete structures compliant with RPS 2011 and industrial complexes.',
+                'icon' => 'Building2',
+                'image' => '/images/project-residential.jpg',
+                'advantage_title_fr' => 'Contrôles Systématiques',
+                'advantage_title_ar' => 'مراقبة تقنية صارمة',
+                'advantage_title_en' => 'Systematic Lab Testing',
+                'advantage_desc_fr' => 'Béton BAP C30/37 vibré testé à 7 et 28 jours par laboratoires agréés.',
+                'advantage_desc_ar' => 'اختبارات ضغط الخرسانة في المختبر العمومي للتجارب والدراسات LPEE.',
+                'advantage_desc_en' => 'Compressive strength tested at 7 & 28 days by accredited national laboratories.',
+                'order' => 1,
+                'scopes' => [
+                    ['fr' => 'Terrassement et fouilles en excavation', 'ar' => 'أشغال الحفر الهندسي وتجهيز الأرضيات', 'en' => 'Site excavation and earthworks'],
+                    ['fr' => 'Fondations sur pieux et radier général étanche', 'ar' => 'أساسات خازوقية وأساسات رافت عازلة', 'en' => 'Piled foundations and waterproof raft slabs'],
+                    ['fr' => 'Structures poteaux-poutres en béton armé haute résistance', 'ar' => 'أعمدة وجسور خرسانية مسلحة فائقة المقاومة', 'en' => 'Reinforced high-strength concrete frames'],
+                    ['fr' => 'Planchers précontraints et dalles alvéolaires', 'ar' => 'أسقف سابقة الإجهاد وبلاطات مفرغة', 'en' => 'Pre-stressed and hollow-core slabs'],
+                    ['fr' => 'Maçonnerie et étanchéité multicouche toiture-terrasse', 'ar' => 'البناء والعزل المائي المزدوج للأسطح', 'en' => 'Masonry and multilayer roof waterproofing'],
+                ],
+            ],
+            [
+                'slug' => 'vrd-voirie',
+                'title_fr' => 'VRD & Travaux Publics',
+                'title_ar' => 'الطرق والشبكات التحتية (VRD)',
+                'title_en' => 'Roads & Utilities (VRD)',
+                'short_desc_fr' => 'Assainissement eaux usées et pluviales, voirie lourde, terrassement et viabilisation de lotissements.',
+                'short_desc_ar' => 'شبكات التطهير السائل ومياه الأمطار، تعبيد الطرق وتجهيز التجزئات السكنية والصناعية.',
+                'short_desc_en' => 'Stormwater & wastewater sewer networks, road paving, grading and full subdivision servicing.',
+                'icon' => 'Truck',
+                'image' => '/images/project-vrd.jpg',
+                'advantage_title_fr' => 'Flotte d\'Engins Propriétaire',
+                'advantage_title_ar' => 'أسطول آليات مملوك بالكامل',
+                'advantage_title_en' => 'Proprietary Machine Fleet',
+                'advantage_desc_fr' => 'Intervention rapide sans sous-traitance avec nos pelles, niveleuses et finisseurs.',
+                'advantage_desc_ar' => 'تدخل سريع بدون وسطاء بفضل أسطولنا من الحفارات وكاسحات الأسفلت.',
+                'advantage_desc_en' => 'Immediate deployment without subcontractors using our heavy fleet.',
+                'order' => 2,
+                'scopes' => [
+                    ['fr' => 'Canalisations d\'assainissement grand diamètre (diam. 600 à 1500 mm)', 'ar' => 'قنوات تطهير بقطر كبير (600 إلى 1500 ملم)', 'en' => 'Large diameter storm sewer pipes'],
+                    ['fr' => 'Pose de bordures de trottoir T2/CS2 et caniveaux béton', 'ar' => 'وضع أرصفة الطرق وقنوات تصريف المياه الخرسانية', 'en' => 'Concrete curbs and rainwater gutters'],
+                    ['fr' => 'Revêtement en enrobé bitumineux à chaud épaisseur 6 à 8 cm', 'ar' => 'تعبيد الطرق بالأسفلت الساخن بسماكة 6 إلى 8 سم', 'en' => 'Hot-mix asphalt roadway paving (6-8cm)'],
+                    ['fr' => 'Éclairage public LED et réseaux souterrains basse/moyenne tension', 'ar' => 'إنارة عمومية موفرة وشبكات كهربائية تحت أرضية', 'en' => 'Underground electrical and LED street lighting'],
+                ],
+            ],
+            [
+                'slug' => 'genie-civil',
+                'title_fr' => 'Génie Civil & Ouvrages d\'Art',
+                'title_ar' => 'الهندسة المدنية والمنشآت',
+                'title_en' => 'Civil Engineering & Heavy Works',
+                'short_desc_fr' => 'Réservoirs hydrauliques, dalots, murs de soutènement et plateformes logistiques industrielles.',
+                'short_desc_ar' => 'خزانات المياه، المنشآت الهيدروليكية، الجدران الاستنادية والمنصات اللوجستية.',
+                'short_desc_en' => 'Hydraulic reservoirs, box culverts, retaining walls and large logistics platforms.',
+                'icon' => 'Construction',
+                'image' => '/images/project-civil.jpg',
+                'advantage_title_fr' => 'Étanchéité Garantie 20 Ans',
+                'advantage_title_ar' => 'عزل مائي مضمون 20 سنة',
+                'advantage_title_en' => '20-Year Watertight Guarantee',
+                'advantage_desc_fr' => 'Adjuvants hydrofuges de masse et traitement des reprises de bétonnage.',
+                'advantage_desc_ar' => 'استعمال مواد كيميائية عازلة ومعالجة مفاصل التمدد بأحدث التقنيات.',
+                'advantage_desc_en' => 'Integral mass waterproofing and specialized construction joint sealing.',
+                'order' => 3,
+                'scopes' => [
+                    ['fr' => 'Réservoirs d\'eau potable semi-enterrés jusqu\'à 20 000 m³', 'ar' => 'خزانات مياه شرب نصف مطمورة سعة تصل إلى 20 ألف م³', 'en' => 'Semi-buried potable water reservoirs up to 20,000 m³'],
+                    ['fr' => 'Dalots en béton armé pour franchissement de cours d\'eau et oueds', 'ar' => 'منشآت تصريف خرسانية لعبور الأودية والمسالك المائية', 'en' => 'Reinforced concrete culverts for river crossings'],
+                    ['fr' => 'Murs de soutènement en béton banché et parois clouées', 'ar' => 'جدران استنادية مسلحة لحماية المنحدرات الطرقية', 'en' => 'Retaining walls and soil nail stabilization'],
+                    ['fr' => 'Stations de relevage, pompage et dégrillage', 'ar' => 'محطات الضخ والرفع الهيدروليكية', 'en' => 'Pumping stations and water distribution plants'],
+                ],
+            ],
+            [
+                'slug' => 'renovation',
+                'title_fr' => 'Rénovation & Aménagement Tout Corps d\'État',
+                'title_ar' => 'التهيئة والتجديد المعماري',
+                'title_en' => 'Fit-Out & Architectural Refurbishment',
+                'short_desc_fr' => 'Réhabilitation complète, renforcement structurel carbone, façades rideaux et aménagements de prestige.',
+                'short_desc_ar' => 'تجديد شامل للبنايات، تدعيم الهياكل بالكربون، واجهات زجاجية وتشطيبات راقية.',
+                'short_desc_en' => 'Complete building refurbishment, carbon fiber strengthening, curtain walls and luxury interior fit-out.',
+                'icon' => 'PaintBucket',
+                'image' => '/images/project-renovation.jpg',
+                'advantage_title_fr' => 'Finitions Nobles & Artisanat',
+                'advantage_title_ar' => 'أصالة مغربية وتشطيبات حديثة',
+                'advantage_title_en' => 'Bespoke Craftsmanship',
+                'advantage_desc_fr' => 'Pose de marbre marocain poli miroir, boiseries de cèdre et aluminium thermolaqué.',
+                'advantage_desc_ar' => 'أرضيات رخام رويال مصقول، خشب الأرز وألمنيوم عازل للصوت والحرارة.',
+                'advantage_desc_en' => 'Polished Royal Moroccan marble, cedar woodwork, and acoustic aluminum.',
+                'order' => 4,
+                'scopes' => [
+                    ['fr' => 'Renforcement structurel par plats et tissus de fibres de carbone', 'ar' => 'تدعيم الهياكل القائمة بألياف الكربون وراتنج الإيبوكسي', 'en' => 'Carbon fiber fabric & plate structural strengthening'],
+                    ['fr' => 'Façades vitrées isolantes, mur-rideau et bardage ventilé', 'ar' => 'واجهات زجاجية عازلة للحرارة وتكسية حديثة', 'en' => 'Insulated curtain wall and ventilated facade systems'],
+                    ['fr' => 'Revêtements marbre, zellige traditionnel et parquets nobles', 'ar' => 'أرضيات رخامية، زليج تقليدي وأرضيات خشبية راقية', 'en' => 'Marble flooring, handcrafted zellige tile and hardwoods'],
+                    ['fr' => 'Réseaux électriques ondulés, sécurité incendie et VMC double flux', 'ar' => 'شبكات كهربائية محمية، إنذار حريق وتهوية مركزية', 'en' => 'Clean power electrical grids, fire suppression and HVAC'],
+                ],
+            ],
+            [
+                'slug' => 'terrassement',
+                'title_fr' => 'Terrassement en Grande Masse',
+                'title_ar' => 'أشغال الحفر الكبرى والتسوية',
+                'title_en' => 'Bulk Earthworks & Grading',
+                'short_desc_fr' => 'Excavation, déblai/remblai, nivellement laser et compactage dynamique pour plateformes industrielles.',
+                'short_desc_ar' => 'حفر ونقل الأتربة، تسوية بنظام الليزر ودمك ديناميكي للمنصات اللوجستية.',
+                'short_desc_en' => 'Excavation, cut & fill, laser grading and dynamic compaction for large logistics sites.',
+                'icon' => 'Layers',
+                'image' => '/images/hero.jpg',
+                'advantage_title_fr' => 'Rendement de 5 000 m³/jour',
+                'advantage_title_ar' => 'إنتاجية تزيد عن 5,000 م³ يومياً',
+                'advantage_title_en' => '5,000 m³/day Excavation Rate',
+                'advantage_desc_fr' => 'Mobilisation immédiate de pelles lourdes 30T et camions bennes 8x4.',
+                'advantage_desc_ar' => 'تعبئة فورية للحفارات الثقيلة وشاحنات النقل الضخمة.',
+                'advantage_desc_en' => 'Immediate deployment of 30T hydraulic excavators and 8x4 dumper trucks.',
+                'order' => 5,
+                'scopes' => [
+                    ['fr' => 'Décapage de terre végétale et mise en cordon', 'ar' => 'إزالة التربة السطحية وتخزينها لاستصلاح المساحات', 'en' => 'Topsoil stripping and stockpiling'],
+                    ['fr' => 'Fouilles en grande profondeur et déroctage au brise-roche', 'ar' => 'حفر عميق وتكسير الصخور بالصدم الهيدروليكي', 'en' => 'Deep trenching and hydraulic rock breaking'],
+                    ['fr' => 'Nivellement guidé par laser et GPS centimétrique', 'ar' => 'تسوية دقيقة بنظام التوجيه بالليزر ونظام GPS', 'en' => 'Laser-guided and GPS-controlled precision grading'],
+                    ['fr' => 'Compactage contrôlé au pénétromètre dynamique et essais de plaque', 'ar' => 'دمك خاضع للمراقبة عبر تجارب الكثافة والتحمل', 'en' => 'Dynamic compaction monitored by plate load tests'],
+                ],
+            ],
+            [
+                'slug' => 'pilotage-opc',
+                'title_fr' => 'Pilotage OPC & Suivi de Chantier',
+                'title_ar' => 'إدارة وتنسيق الأوراش (OPC)',
+                'title_en' => 'Construction Management & Site Supervision',
+                'short_desc_fr' => 'Ordonnancement, coordination technique, sécurité TRC et planification rigoureuse des délais.',
+                'short_desc_ar' => 'تخطيط زمني دقيق، تنسيق بين المتدخلين، ومطابقة صارمة لدفاتر التحملات.',
+                'short_desc_en' => 'Scheduling, technical trade coordination, site safety standards and strict deadline execution.',
+                'icon' => 'ClipboardCheck',
+                'image' => '/images/machinery-fleet.jpg',
+                'advantage_title_fr' => 'Zéro Retard Contractuel',
+                'advantage_title_ar' => 'التزام تام بمواعيد التسليم',
+                'advantage_title_en' => 'Zero Schedule Delays',
+                'advantage_desc_fr' => 'Planification informatisée Gantt et réunions hebdomadaires d\'avancement.',
+                'advantage_desc_ar' => 'برمجة دقيقة للمسار الحرج واجتماعات تنسيقية دورية مع الملاك.',
+                'advantage_desc_en' => 'Critical path method (CPM) planning and weekly site progress meetings.',
+                'order' => 6,
+                'scopes' => [
+                    ['fr' => 'Établissement du planning chemin critique sous MS Project / Primavera', 'ar' => 'إعداد المخطط الزمني الشامل وتحليل المسار الحرج', 'en' => 'Comprehensive master schedule using MS Project / Primavera'],
+                    ['fr' => 'Coordination des corps d\'état techniques et réunions hebdomadaires', 'ar' => 'التنسيق بين كافة الفرق الفنية واجتماعات الأوراش', 'en' => 'Subcontractor coordination and weekly site meetings'],
+                    ['fr' => 'Vérification et validation contradictoire des attachements', 'ar' => 'مراجعة قياسات الأشغال والمصادقة على الكشوفات الشهرية', 'en' => 'Monthly quantity take-offs and contractor billing checks'],
+                    ['fr' => 'Assistance aux opérations de réception provisoire et définitive', 'ar' => 'المواكبة في التسليم المؤقت والنهائي للأشغال', 'en' => 'Turnkey commissioning and final site handover support'],
+                ],
+            ],
+        ];
+
+        foreach ($servicesData as $sData) {
+            $scopes = $sData['scopes'];
+            unset($sData['scopes']);
+
+            $service = Service::updateOrCreate(
+                ['slug' => $sData['slug']],
+                $sData
+            );
+
+            $service->scopes()->delete();
+            foreach ($scopes as $idx => $sc) {
+                ServiceScope::create([
+                    'service_id' => $service->id,
+                    'text_fr' => $sc['fr'],
+                    'text_ar' => $sc['ar'],
+                    'text_en' => $sc['en'] ?? null,
+                    'order' => $idx + 1,
+                ]);
+            }
+        }
+
+        // ==========================================
+        // 8. CLIENT TESTIMONIALS & PARTNER REFERENCES
+        // ==========================================
+        $testimonialsData = [
+            [
+                'client_name' => 'M. Hassan Berrada',
+                'role_fr' => 'Directeur Technique',
+                'role_ar' => 'المدير التقني',
+                'role_en' => 'Technical Director',
+                'company_fr' => 'Groupe Saïss Immobilier',
+                'company_ar' => 'مجموعة سايس العقارية',
+                'company_en' => 'Saïss Real Estate Group',
+                'city_fr' => 'Fès',
+                'city_ar' => 'فاس',
+                'city_en' => 'Fez',
+                'comment_fr' => 'Slassi Travaux a mené à bien la réalisation de notre complexe résidentiel Al Jawahir à Fès dans des conditions exemplaires. Le respect des délais et la qualité des bétons armés ont largement dépassé nos attentes.',
+                'comment_ar' => 'قامت شركة سلاسي للأشغال بإنجاز مجمعنا السكني الجواهر بفاس بكفاءة عالية واحترافية ملحوظة. احترام الآجال المحددة وجودة الخرسانة المسلحة كانا في الموعد تماماً.',
+                'comment_en' => 'Slassi Travaux successfully delivered our Al Jawahir residential project in Fez under exemplary conditions. Schedule compliance and reinforced concrete quality exceeded our expectations.',
+                'rating' => 5,
+                'avatar_image' => '/images/favicon-icon.jpg',
+                'project_id' => $jawahirProject?->id,
+                'order' => 1,
+            ],
+            [
+                'client_name' => 'Ing. Karim Tazi',
+                'role_fr' => 'Directeur de Projet VRD',
+                'role_ar' => 'مدير مشاريع البنية التحتية',
+                'role_en' => 'Infrastructure Project Director',
+                'company_fr' => 'Commune Urbaine de Fès',
+                'company_ar' => 'الجماعة الحضرية لفاس',
+                'company_en' => 'Municipality of Fez',
+                'city_fr' => 'Fès',
+                'city_ar' => 'فاس',
+                'city_en' => 'Fez',
+                'comment_fr' => 'Un partenaire rigoureux pour les marchés publics de voirie et de VRD. Leur parc matériel en propre leur confère une réactivité incomparable sur les axes routiers majeurs du Saïss.',
+                'comment_ar' => 'شريك نموذجي وموثوق في تنفيذ الصفقات العمومية للطرق والشبكات. امتلاكهم لأسطول الآليات المتطور يمنحهم سرعة استجابة ملموسة في الشوارع الكبرى بفاس.',
+                'comment_en' => 'A rigorous and reliable partner for municipal road infrastructure contracts. Their proprietary equipment fleet provides unmatched responsiveness.',
+                'rating' => 5,
+                'avatar_image' => '/images/project-vrd.jpg',
+                'project_id' => $boulevardProject?->id,
+                'order' => 2,
+            ],
+            [
+                'client_name' => 'M. Mehdi Alami',
+                'role_fr' => 'Gérant & Promoteur',
+                'role_ar' => 'مدير عام ومنعش عقاري',
+                'role_en' => 'Managing Director',
+                'company_fr' => 'Alami Résidences',
+                'company_ar' => 'إقامات العلمي',
+                'company_en' => 'Alami Residences',
+                'city_fr' => 'Meknès',
+                'city_ar' => 'مكناس',
+                'city_en' => 'Meknes',
+                'comment_fr' => 'Du terrassement initial jusqu\'à la livraison du gros œuvre, l\'équipe d\'ingénieurs de Slassi Travaux a su trouver les meilleures solutions techniques face aux contraintes du sol.',
+                'comment_ar' => 'منذ انطلاق أشغال الحفر وحتى تسليم الهيكل الخرساني، أثبت الفريق الهندسي لشركة سلاسي قدرة متميزة على إيجاد الحلول التقنية الملائمة لطبيعة التربة.',
+                'comment_en' => 'From initial excavation to structural completion, Slassi Travaux\'s engineering staff consistently identified the optimal technical solutions.',
+                'rating' => 5,
+                'avatar_image' => '/images/project-civil.jpg',
+                'project_id' => null,
+                'order' => 3,
+            ],
+        ];
+
+        foreach ($testimonialsData as $tData) {
+            Testimonial::updateOrCreate(
+                ['client_name' => $tData['client_name']],
+                $tData
+            );
+        }
+
+        // ==========================================
+        // 9. QUALITY COMMITMENTS & MOROCCAN STANDARDS
+        // ==========================================
+        $commitmentsData = [
+            [
+                'title_fr' => 'Assurance Décennale & Responsabilité Civile TRC',
+                'title_ar' => 'تأمين شامل وضمان عشري TRC',
+                'title_en' => '10-Year Decennial & Full TRC Site Insurance',
+                'desc_fr' => 'Police tous risques chantier (TRC) et garantie décennale souscrites auprès des plus grands assureurs du Royaume pour une sérénité contractuelle absolue.',
+                'desc_ar' => 'بوليصة تأمين شاملة لجميع أخطار الورش (TRC) مع ضمان عشري معتمد لدى كبريات شركات التأمين بالمغرب لضمان أمان استثماري كامل.',
+                'desc_en' => 'All-Risk Contractors Insurance (TRC) and 10-year decennial structural guarantee covering all project assets.',
+                'icon' => 'ShieldCheck',
+                'image' => '/images/project-civil.jpg',
+                'badge_fr' => 'Engagement Contractuel Garanti',
+                'badge_ar' => 'مضمون وموثق بالشهادات الرسمية',
+                'badge_en' => 'Certified Contractual Commitment',
+                'standard_code' => 'TRC / CCTG',
+                'order' => 1,
+            ],
+            [
+                'title_fr' => 'Conformité Stricte aux Normes Parasismiques (RPS 2011)',
+                'title_ar' => 'مطابقة تامة لمعايير الزلازل RPS 2011',
+                'title_en' => 'Strict Compliance with Moroccan Seismic Code (RPS 2011)',
+                'desc_fr' => 'Bétons haute performance dosés, vibrés et formulés pour absorber les sollicitations sismiques selon la réglementation nationale en vigueur.',
+                'desc_ar' => 'خرسانة مسلحة ذات مقاومة عالية مصممة وفق أحدث حسابات مقاومة الزلازل بالمغرب مع حديد مطابق للمواصفات.',
+                'desc_ar' => 'High-strength structural concrete engineered to resist seismic forces in accordance with Moroccan building laws.',
+                'icon' => 'FileCheck',
+                'image' => '/images/project-residential.jpg',
+                'badge_fr' => 'Conforme RPS 2011',
+                'badge_ar' => 'مطابق للائحة RPS 2011',
+                'badge_en' => 'RPS 2011 Certified',
+                'standard_code' => 'RPS 2011 / NM',
+                'order' => 2,
+            ],
+            [
+                'title_fr' => 'Contrôles Systématiques par Laboratoires Agréés (LPEE, LABOTEST)',
+                'title_ar' => 'فحوصات مخبرية مستمرة من LPEE و LABOTEST',
+                'title_en' => 'Accredited Laboratory Controls (LPEE, LABOTEST)',
+                'desc_fr' => 'Essais de compression à 7 et 28 jours, contrôle sclérométrique, essais de plaque et carottage systématique pour une traçabilité intégrale.',
+                'desc_ar' => 'تجارب تكسير الخرسانة بعد 7 و 28 يوماً، قياس الكثافة وتجارب التحميل الميدانية لضمان أعلى معايير الصلابة.',
+                'desc_en' => 'Compressive strength testing at 7 and 28 days, plate load tests, and core sampling ensuring complete material traceability.',
+                'icon' => 'Microscope',
+                'image' => '/images/project-renovation.jpg',
+                'badge_fr' => 'Agrément LPEE / LABOTEST',
+                'badge_ar' => 'اعتماد رسمي LPEE',
+                'badge_en' => 'LPEE Quality Approved',
+                'standard_code' => 'NM BTP / CCTG',
+                'order' => 3,
+            ],
+            [
+                'title_fr' => 'Respect Contractuel Inconditionnel des Délais',
+                'title_ar' => 'التزام حرفي وصارم بالمواعيد التعاقدية',
+                'title_en' => 'Strict Adherence to Project Milestones & Deadlines',
+                'desc_fr' => 'Planification minutieuse sous MS Project avec analyse du chemin critique et doublement des équipes en cas de phase sensible.',
+                'desc_ar' => 'جدولة دقيقة لمراحل الإنجاز ومضاعفة فرق العمل في المراحل الحساسة لتسليم المشاريع في موعدها المحدد.',
+                'desc_en' => 'Rigorous critical path tracking and dynamic shift management to ensure zero project delay.',
+                'icon' => 'Clock',
+                'image' => '/images/hero.jpg',
+                'badge_fr' => 'Garantie de Livraison',
+                'badge_ar' => 'ضمان التسليم في الآجال',
+                'badge_en' => 'On-Time Handover Guarantee',
+                'standard_code' => 'ISO 9001:2015',
+                'order' => 4,
+            ],
+        ];
+
+        foreach ($commitmentsData as $cData) {
+            Commitment::updateOrCreate(
+                ['title_fr' => $cData['title_fr']],
+                $cData
+            );
+        }
+
+        // ==========================================
+        // 10. EQUIPMENT FLEET CATEGORIES & STATS
+        // ==========================================
+        $equipmentStats = [
+            ['count' => '40+', 'label_fr' => 'Engins lourds propriétaires', 'label_ar' => 'آلية ومعدة ثقيلة مملوكة', 'label_en' => 'Heavy construction machines', 'order' => 1],
+            ['count' => '100%', 'label_fr' => 'Flotte entretenue et disponible', 'label_ar' => 'أسطول جاهز ومستمر الصيانة', 'label_en' => 'Maintained & operational fleet', 'order' => 2],
+            ['count' => '24/7', 'label_fr' => 'Capacité de déploiement d\'urgence', 'label_ar' => 'جاهزية للتدخل والعمل المستمر', 'label_en' => 'Rapid field mobilization', 'order' => 3],
+            ['count' => '0', 'label_fr' => 'Retard dû à la sous-traitance d\'engins', 'label_ar' => 'تأخير ناتج عن كراء الآليات', 'label_en' => 'Zero equipment rental delays', 'order' => 4],
+        ];
+
+        foreach ($equipmentStats as $st) {
+            EquipmentStat::updateOrCreate(
+                ['count' => $st['count'], 'label_fr' => $st['label_fr']],
+                $st
+            );
+        }
+
+        $equipmentCategories = [
+            [
+                'slug' => 'terrassement-extraction',
+                'title_fr' => 'Terrassement & Extraction',
+                'title_ar' => 'الحفر الثقيل وتجهيز المواقع',
+                'title_en' => 'Earthmoving & Excavation',
+                'icon' => 'Truck',
+                'banner_image' => '/images/machinery-fleet.jpg',
+                'order' => 1,
+                'items' => [
+                    ['fr' => 'Pelles sur chenilles 20T - 35T (CAT 330D, Komatsu PC290)', 'ar' => 'حفارات على جنزير 20 إلى 35 طن (كاتربيلر، كوماتسو)', 'en' => '20T - 35T Crawler Excavators (CAT 330D, Komatsu)'],
+                    ['fr' => 'Bulldozers D6 et D8 avec ripper de déroctage', 'ar' => 'جرافات ثقيلة D6 و D8 مع كاسحة صخور هيدروليكية', 'en' => 'D6 & D8 Heavy Bulldozers with ripper'],
+                    ['fr' => 'Chargeuses sur pneus avec godet 3.5 m³', 'ar' => 'شاحنات تحميل على عجلات مع مجرفة 3.5 م³', 'en' => 'Heavy wheel loaders (3.5 m³ bucket)'],
+                    ['fr' => 'Mini-pelles urbaines pour tranchées étroites et VRD', 'ar' => 'حفارات صغيرة لأشغال الشبكات بالمناطق الحضرية', 'en' => 'Compact excavators for urban utility trenches'],
+                ],
+            ],
+            [
+                'slug' => 'transport-evacuation',
+                'title_fr' => 'Transport & Logistique de Chantier',
+                'title_ar' => 'النقل واللوجستيك الميداني',
+                'title_en' => 'Transport & Heavy Haulage',
+                'icon' => 'Truck',
+                'banner_image' => '/images/project-vrd.jpg',
+                'order' => 2,
+                'items' => [
+                    ['fr' => 'Camions bennes 8x4 Mercedes Actros (Charge utile 32T)', 'ar' => 'شاحنات قلابة 8×4 مرسيدس أكتروس (حمولة 32 طن)', 'en' => '8x4 Mercedes Actros Dump Trucks (32T payload)'],
+                    ['fr' => 'Semi-remorques porte-engins lourds jusqu\'à 60T', 'ar' => 'مقطورات ثقيلة لنقل الآليات حتى 60 طن', 'en' => 'Heavy lowboy equipment haulers up to 60T'],
+                    ['fr' => 'Camions citernes à eau 15 000 L pour arrosage et compactage', 'ar' => 'شاحنات صهاريج مياه 15 ألف لتر للرش والدمك', 'en' => '15,000L water tank trucks for soil wetting'],
+                ],
+            ],
+            [
+                'slug' => 'nivellement-compactage',
+                'title_fr' => 'Nivellement & Compactage',
+                'title_ar' => 'التسوية الدقيقة والدك الاهتزازي',
+                'title_en' => 'Grading & Soil Compaction',
+                'icon' => 'Layers',
+                'banner_image' => '/images/hero.jpg',
+                'order' => 3,
+                'items' => [
+                    ['fr' => 'Niveleuses CAT 140M équipées de guidage laser et ultrasons', 'ar' => 'كاسحات تسوية كاتربيلر 140M بنظام التوجيه بالليزر', 'en' => 'CAT 140M motor graders with sonic & laser guidance'],
+                    ['fr' => 'Compacteurs monocylindres vibrants Bomag BW213 (13T)', 'ar' => 'مداحل اهتزازية أسطوانية بوماغ (13 طن)', 'en' => 'Bomag BW213 single drum vibratory rollers (13T)'],
+                    ['fr' => 'Compacteurs tandem et à pneus pour enrobés bitumineux', 'ar' => 'مداحل مطاطية لتسوية وتكثيف الأسفلت الساخن', 'en' => 'Pneumatic tire and tandem rollers for asphalt'],
+                ],
+            ],
+            [
+                'slug' => 'beton-levage',
+                'title_fr' => 'Béton & Équipements de Levage',
+                'title_ar' => 'معدات الخرسانة والرفع',
+                'title_en' => 'Concrete & Cranes',
+                'icon' => 'Construction',
+                'banner_image' => '/images/project-civil.jpg',
+                'order' => 4,
+                'items' => [
+                    ['fr' => 'Camions malaxeurs (toupies) à béton 10 m³', 'ar' => 'شاحنات خلاطات خرسانة سعة 10 متر مكعب', 'en' => '10 m³ Transit Concrete Mixers'],
+                    ['fr' => 'Pompes à béton automotrices à flèche 36m', 'ar' => 'مضخات خرسانة ذاتية الحركة بذراع 36 متراً', 'en' => '36m boom truck-mounted concrete pumps'],
+                    ['fr' => 'Centrales à béton de chantier automatisées', 'ar' => 'محطات خلط خرسانة آلية في الأوراش', 'en' => 'Automated batching concrete plant systems'],
+                    ['fr' => 'Grues à tour à montage rapide et treuils de levage', 'ar' => 'رافعات برجية سريعة التركيب ورافعات سلكية', 'en' => 'Fast-erecting tower cranes and site hoists'],
+                ],
+            ],
+        ];
+
+        foreach ($equipmentCategories as $eqCat) {
+            $items = $eqCat['items'];
+            unset($eqCat['items']);
+
+            $catModel = EquipmentCategory::updateOrCreate(
+                ['slug' => $eqCat['slug']],
+                $eqCat
+            );
+
+            $catModel->items()->delete();
+            foreach ($items as $idx => $it) {
+                EquipmentCategoryItem::create([
+                    'equipment_category_id' => $catModel->id,
+                    'name_fr' => $it['fr'],
+                    'name_ar' => $it['ar'],
+                    'name_en' => $it['en'] ?? null,
+                    'order' => $idx + 1,
+                ]);
+            }
+        }
+
+        // ==========================================
+        // 11. ESTIMATOR CONFIGURATION (TYPES, FINISHES, LOCATIONS)
+        // ==========================================
+        $estimatorTypes = [
+            [
+                'type_key' => 'building',
+                'name_fr' => 'Bâtiment Résidentiel (R+4)',
+                'name_ar' => 'عمارة سكنية (R+4)',
+                'name_en' => 'Residential Building (R+4)',
+                'base_rate' => 3200,
+                'unit' => 'm²',
+                'icon' => 'Building2',
+                'image' => '/images/project-residential.jpg',
+                'order' => 1,
+            ],
+            [
+                'type_key' => 'villa',
+                'name_fr' => 'Villa Individuelle de Haut Standing',
+                'name_ar' => 'فيلا فاخرة منفصلة',
+                'name_en' => 'Luxury Detached Villa',
+                'base_rate' => 4500,
+                'unit' => 'm²',
+                'icon' => 'Building',
+                'image' => '/images/project-renovation.jpg',
+                'order' => 2,
+            ],
+            [
+                'type_key' => 'industrial',
+                'name_fr' => 'Hangar Industriel & Dépôt Logistique',
+                'name_ar' => 'مستودع وهنغار صناعي لوجستي',
+                'name_en' => 'Industrial Warehouse & Logistics Hangar',
+                'base_rate' => 2200,
+                'unit' => 'm²',
+                'icon' => 'Layers',
+                'image' => '/images/hero.jpg',
+                'order' => 3,
+            ],
+            [
+                'type_key' => 'vrd',
+                'name_fr' => 'Aménagement VRD & Voirie (au mètre)',
+                'name_ar' => 'تهيئة الطرق والشبكات التحتية (بالمتر)',
+                'name_en' => 'Roads & Utilities Infrastructure (per meter)',
+                'base_rate' => 950,
+                'unit' => 'ml',
+                'icon' => 'Truck',
+                'image' => '/images/project-vrd.jpg',
+                'order' => 4,
+            ],
+            [
+                'type_key' => 'renovation',
+                'name_fr' => 'Rénovation & Réhabilitation de Bâtiment',
+                'name_ar' => 'تجديد وإعادة تأهيل المباني القائمة',
+                'name_en' => 'Complete Building Renovation & Fit-Out',
+                'base_rate' => 1800,
+                'unit' => 'm²',
+                'icon' => 'PaintBucket',
+                'image' => '/images/project-renovation.jpg',
+                'order' => 5,
+            ],
+        ];
+
+        foreach ($estimatorTypes as $et) {
+            EstimatorProjectType::updateOrCreate(
+                ['type_key' => $et['type_key']],
+                $et
+            );
+        }
+
+        $estimatorFinishes = [
+            [
+                'finish_key' => 'gros_oeuvre',
+                'name_fr' => 'Gros Œuvre Seul (Fondations + Béton Armé)',
+                'name_ar' => 'الهيكل الخرساني والأساسات فقط (عظم)',
+                'name_en' => 'Structural Core Only (Foundations & Concrete)',
+                'multiplier' => 0.65,
+                'description_fr' => 'Fouilles, fondations, ossature en béton armé et dalles de plancher.',
+                'order' => 1,
+            ],
+            [
+                'finish_key' => 'standard',
+                'name_fr' => 'Standard Fini (Clé en main prêt à l\'usage)',
+                'name_ar' => 'تشطيب قياسي متكامل (جاهز للاستخدام)',
+                'name_en' => 'Turnkey Standard Finish',
+                'multiplier' => 1.00,
+                'description_fr' => 'Gros œuvre complet + revêtements carrelage, menuiseries et sanitaires standards.',
+                'order' => 2,
+            ],
+            [
+                'finish_key' => 'haut_standing',
+                'name_fr' => 'Haut Standing (Marbre, Isolation & Climatisation)',
+                'name_ar' => 'تشطيب فاخر (رخام، عزل حراري وتكييف)',
+                'name_en' => 'High Standing (Marble, Insulation & HVAC)',
+                'multiplier' => 1.35,
+                'description_fr' => 'Marbre poli, double vitrage thermique, volets roulants motorisés et faux-plafonds.',
+                'order' => 3,
+            ],
+            [
+                'finish_key' => 'prestige',
+                'name_fr' => 'Prestige & Luxe (Domotique, Façades Verre)',
+                'name_ar' => 'تشطيب استثنائي (تحكم ذكي وواجهات زجاجية)',
+                'name_en' => 'Prestige Luxury (Smart Home & Curtain Walls)',
+                'multiplier' => 1.80,
+                'description_fr' => 'Équipements domotiques, menuiseries à rupture de pont thermique et finitions nobles.',
+                'order' => 4,
+            ],
+        ];
+
+        foreach ($estimatorFinishes as $ef) {
+            EstimatorFinish::updateOrCreate(
+                ['finish_key' => $ef['finish_key']],
+                $ef
+            );
+        }
+
+        $estimatorLocations = [
+            ['location_key' => 'fes', 'name_fr' => 'Fès (Agglomération & Environs)', 'name_ar' => 'فاس ونواحيها', 'name_en' => 'Fez & Environs', 'logistics_multiplier' => 1.00, 'order' => 1],
+            ['location_key' => 'meknes', 'name_fr' => 'Meknès & Région Saïss', 'name_ar' => 'مكناس وإقليم سايس', 'name_en' => 'Meknes & Saïss Region', 'logistics_multiplier' => 1.02, 'order' => 2],
+            ['location_key' => 'casablanca', 'name_fr' => 'Casablanca - Grand Casablanca', 'name_ar' => 'الدار البيضاء الكبرى', 'name_en' => 'Greater Casablanca', 'logistics_multiplier' => 1.08, 'order' => 3],
+            ['location_key' => 'rabat', 'name_fr' => 'Rabat - Salé - Témara', 'name_ar' => 'الرباط - سلا - تمارة', 'name_en' => 'Rabat - Salé - Témara', 'logistics_multiplier' => 1.06, 'order' => 4],
+            ['location_key' => 'autre', 'name_fr' => 'Autres Régions du Royaume', 'name_ar' => 'باقي جهات المملكة', 'name_en' => 'Other Moroccan Regions', 'logistics_multiplier' => 1.12, 'order' => 5],
+        ];
+
+        foreach ($estimatorLocations as $el) {
+            EstimatorLocation::updateOrCreate(
+                ['location_key' => $el['location_key']],
+                $el
+            );
+        }
+
+        // ==========================================
+        // 12. TEAM LEADERSHIP & TECHNICAL EXECUTIVES
+        // ==========================================
+        $teamData = [
+            [
+                'name' => 'Hamid Slassi',
+                'role_fr' => 'Directeur Général & Fondateur',
+                'role_ar' => 'المدير العام والمؤسس',
+                'role_en' => 'Chief Executive Officer & Founder',
+                'department_fr' => 'Direction Générale',
+                'department_ar' => 'الإدارة العامة',
+                'department_en' => 'Executive Board',
+                'image' => '/images/favicon-icon.jpg',
+                'email' => 'direction@slassi-travaux.ma',
+                'phone' => '+212 5 35 62 14 80',
+                'experience_years' => '15+ ans',
+                'bio_fr' => 'Ingénieur d\'État en Génie Civil avec plus de 15 années d\'expérience dans la direction de chantiers majeurs d\'infrastructures et de bâtiment au Maroc.',
+                'bio_ar' => 'مهندس دولة في الهندسة المدنية بخبرة تتجاوز 15 سنة في قيادة المشاريع العمرانية والبنيات التحتية بالمغرب.',
+                'bio_en' => 'Civil Engineer with over 15 years leading major public works and construction developments across Morocco.',
+                'order' => 1,
+            ],
+            [
+                'name' => 'Youssef El Amrani',
+                'role_fr' => 'Conducteur Principal de Travaux',
+                'role_ar' => 'مدير الأوراش الرئيسي',
+                'role_en' => 'Lead Site Construction Manager',
+                'department_fr' => 'Génie Civil & Gros Œuvre',
+                'department_ar' => 'الهندسة المدنية والبناء',
+                'department_en' => 'Civil Works',
+                'image' => '/images/project-residential.jpg',
+                'email' => 'chef.projet@slassi-travaux.ma',
+                'phone' => '+212 6 61 48 92 10',
+                'experience_years' => '12 ans',
+                'bio_fr' => 'Spécialiste de la conduite de chantiers complexes en béton armé et coordination des corps d\'état secondaires.',
+                'bio_ar' => 'متخصص في إدارة الأوراش الخرسانية الكبرى والتنسيق بين مقاولي الباطن والمهندسين المعماريين.',
+                'bio_en' => 'Expert in structural reinforced concrete execution and multi-trade site coordination.',
+                'order' => 2,
+            ],
+            [
+                'name' => 'Tariq Berrada',
+                'role_fr' => 'Responsable Matériel & Logistique',
+                'role_ar' => 'مسؤول أسطول الآليات واللوجستيك',
+                'role_en' => 'Fleet & Logistics Director',
+                'department_fr' => 'Parc & Maintenance',
+                'department_ar' => 'الأسطول والصيانة',
+                'department_en' => 'Fleet Maintenance',
+                'image' => '/images/machinery-fleet.jpg',
+                'email' => 'parc@slassi-travaux.ma',
+                'phone' => '+212 6 62 11 22 33',
+                'experience_years' => '14 ans',
+                'bio_fr' => 'Gestionnaire chevronné de parcs d\'engins lourds Caterpillar et Mercedes-Benz, assurant 100% de disponibilité opérationnelle.',
+                'bio_ar' => 'خبير في صيانة الآليات الثقيلة كاتربيلر ومرسيدس لضمان استمرارية العمل بدون توقف.',
+                'bio_en' => 'Master technician managing 40+ CAT and Mercedes heavy machinery units with zero downtime.',
+                'order' => 3,
+            ],
+            [
+                'name' => 'Fatima-Zahra Mansouri',
+                'role_fr' => 'Ingénieure d\'Affaires & Métré BTP',
+                'role_ar' => 'مهندسة الدراسات وحساب الكميات',
+                'role_en' => 'Quantity Surveyor & Bid Engineer',
+                'department_fr' => 'Bureau d\'Études & Devis',
+                'department_ar' => 'مكتب الدراسات والتقديرات',
+                'department_en' => 'Estimating & Tenders',
+                'image' => '/images/project-renovation.jpg',
+                'email' => 'devis@slassi-travaux.ma',
+                'phone' => '+212 5 35 62 14 81',
+                'experience_years' => '9 ans',
+                'bio_fr' => 'Experte en métré, analyse de prix unitaires et réponse aux appels d\'offres publics et privés.',
+                'bio_ar' => 'متخصصة في حساب الكميات والتقدير المالي والمشاركة في الصفقات العمومية والخاصة.',
+                'bio_en' => 'Specialist in structural bill of quantities, unit cost estimation and public procurement bids.',
+                'order' => 4,
+            ],
+        ];
+
+        foreach ($teamData as $tm) {
+            TeamMember::updateOrCreate(
+                ['name' => $tm['name']],
+                $tm
+            );
+        }
+
+        // ==========================================
+        // 13. PROJECT GALLERY & CONSTRUCTION PICTURES
+        // ==========================================
+        $galleryImages = [
+            'residence-al-jawahir-fes' => [
+                ['path' => '/images/project-residential.jpg', 'caption' => 'Vue extérieure en perspective 3D - Façade R+7', 'is_cover' => true],
+                ['path' => '/images/hero.jpg', 'caption' => 'Phase gros œuvre en béton armé haute résistance', 'is_cover' => false],
+            ],
+            'amenagement-boulevard-fes-saiss' => [
+                ['path' => '/images/project-vrd.jpg', 'caption' => 'Revêtement en enrobé bitumineux à chaud 7cm', 'is_cover' => true],
+                ['path' => '/images/machinery-fleet.jpg', 'caption' => 'Mobilisation de la flotte niveleuses et finisseurs', 'is_cover' => false],
+            ],
+            'ouvrage-hydraulique-reservoir-meknes' => [
+                ['path' => '/images/project-civil.jpg', 'caption' => 'Réservoir semi-enterré 10 000 m³ avec radier étanche', 'is_cover' => true],
+                ['path' => '/images/hero.jpg', 'caption' => 'Essais de mise en eau concluants à 100%', 'is_cover' => false],
+            ],
+            'rehabilitation-siege-direction-fes' => [
+                ['path' => '/images/project-renovation.jpg', 'caption' => 'Façade mur-rideau et marbre Royal de Fès poli miroir', 'is_cover' => true],
+                ['path' => '/images/project-residential.jpg', 'caption' => 'Renforcement des poteaux par fibres de carbone', 'is_cover' => false],
+            ],
+            'plateforme-logistique-fes-sud' => [
+                ['path' => '/images/hero.jpg', 'caption' => 'Terrassement de grande masse et compactage 35 000 m²', 'is_cover' => true],
+                ['path' => '/images/machinery-fleet.jpg', 'caption' => 'Pelles hydrauliques CAT 330D en rotation continue', 'is_cover' => false],
+            ],
+        ];
+
+        foreach ($galleryImages as $projSlug => $imgs) {
+            $proj = $createdProjects[$projSlug] ?? null;
+            if ($proj) {
+                $proj->images()->delete();
+                foreach ($imgs as $idx => $img) {
+                    ProjectImage::create([
+                        'project_id' => $proj->id,
+                        'image_path' => $img['path'],
+                        'caption_fr' => $img['caption'],
+                        'is_cover' => $img['is_cover'],
+                        'order' => $idx + 1,
+                    ]);
+                }
+            }
         }
     }
 }

@@ -1,13 +1,19 @@
 <?php
 
 use App\Http\Controllers\Api\AuthController;
+use App\Http\Controllers\Api\CommitmentController;
 use App\Http\Controllers\Api\CompanySettingController;
 use App\Http\Controllers\Api\DashboardController;
+use App\Http\Controllers\Api\EquipmentController;
+use App\Http\Controllers\Api\EstimatorController;
 use App\Http\Controllers\Api\MachineryController;
 use App\Http\Controllers\Api\ProjectController;
 use App\Http\Controllers\Api\QuoteController;
 use App\Http\Controllers\Api\RoleController;
+use App\Http\Controllers\Api\ServiceController;
 use App\Http\Controllers\Api\SitePageController;
+use App\Http\Controllers\Api\TeamController;
+use App\Http\Controllers\Api\TestimonialController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -54,6 +60,43 @@ Route::post('/company-settings', [CompanySettingController::class, 'update']);
 
 // Site Pages & CMS Layouts API
 Route::apiResource('pages', SitePageController::class);
+
+// ─── Public Content API (used by client-side portal) ─────────────────────────
+
+// Services BTP
+Route::get('/services', [ServiceController::class, 'index']);
+Route::get('/services/{slug}', [ServiceController::class, 'show']);
+Route::post('/services', [ServiceController::class, 'store']);
+Route::put('/services/{id}', [ServiceController::class, 'update']);
+Route::delete('/services/{id}', [ServiceController::class, 'destroy']);
+
+// Testimonials
+Route::get('/testimonials', [TestimonialController::class, 'index']);
+Route::post('/testimonials', [TestimonialController::class, 'store']);
+Route::put('/testimonials/{id}', [TestimonialController::class, 'update']);
+Route::delete('/testimonials/{id}', [TestimonialController::class, 'destroy']);
+
+// Quality Commitments
+Route::get('/commitments', [CommitmentController::class, 'index']);
+Route::post('/commitments', [CommitmentController::class, 'store']);
+Route::put('/commitments/{id}', [CommitmentController::class, 'update']);
+Route::delete('/commitments/{id}', [CommitmentController::class, 'destroy']);
+
+// Equipment & Fleet (public portal)
+Route::get('/equipment', [EquipmentController::class, 'index']);
+Route::get('/equipment/stats', [EquipmentController::class, 'stats']);
+Route::get('/equipment/categories', [EquipmentController::class, 'categories']);
+
+// Project Estimator Configuration
+Route::get('/estimator/config', [EstimatorController::class, 'config']);
+
+// Team Members
+Route::get('/team', [TeamController::class, 'index']);
+Route::post('/team', [TeamController::class, 'store']);
+Route::put('/team/{id}', [TeamController::class, 'update']);
+Route::delete('/team/{id}', [TeamController::class, 'destroy']);
+
+// ─── Roles, Permissions & Team Access API ────────────────────────────────────
 
 // Roles, Permissions & Team Access API
 Route::get('/roles', [RoleController::class, 'index']);

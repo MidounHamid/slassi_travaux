@@ -31,6 +31,10 @@ class Project extends Model
         'progress',
         'status',
         'image',
+        'architect',
+        'duration',
+        'delivery_date',
+        'is_featured',
         'description_fr',
         'description_ar',
         'description_en',
@@ -38,6 +42,7 @@ class Project extends Model
 
     protected $casts = [
         'progress' => 'integer',
+        'is_featured' => 'boolean',
     ];
 
     protected $appends = [
@@ -51,6 +56,16 @@ class Project extends Model
     public function highlights(): HasMany
     {
         return $this->hasMany(ProjectHighlight::class)->orderBy('order');
+    }
+
+    public function images(): HasMany
+    {
+        return $this->hasMany(ProjectImage::class)->orderBy('order');
+    }
+
+    public function testimonials(): HasMany
+    {
+        return $this->hasMany(Testimonial::class);
     }
 
     public function machineries(): HasMany
